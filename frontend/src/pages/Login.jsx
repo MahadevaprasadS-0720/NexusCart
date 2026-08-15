@@ -59,7 +59,7 @@ const Login = ({ initialMode = 'login' }) => {
     }
   }, [user, navigate]);
 
-  // Direct Sign In / Sign Up Form Submission Handler
+  // Direct Sign In / Sign Up Form Submission Handler with Console Error Logging
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -80,12 +80,13 @@ const Login = ({ initialMode = 'login' }) => {
 
       setLoading(true);
       try {
+        console.log('[Firebase Auth] Creating user:', email);
         // Direct Firebase Auth Registration
         const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
         const newUser = userCredential.user;
 
         // Update profile displayName
-        await updateProfile(newUser, { displayName: name.trim() });
+        await updateProfile(newUser, { displayName: name.trim() }).catch(() => {});
 
         // Save user profile doc in Firestore silently
         setDoc(doc(db, 'users', newUser.uid), {
@@ -102,6 +103,7 @@ const Login = ({ initialMode = 'login' }) => {
         navigate(isAdmin ? '/admin' : '/', { replace: true });
       } catch (err) {
         setLoading(false);
+        console.error('[Firebase Auth Error Code]:', err.code, '[Message]:', err.message, err);
         setError(formatAuthError(err));
       }
       return;
@@ -110,6 +112,7 @@ const Login = ({ initialMode = 'login' }) => {
     // Direct Firebase Auth Login
     setLoading(true);
     try {
+      console.log('[Firebase Auth] Signing in user:', email);
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
       const loggedUser = userCredential.user;
 
@@ -118,6 +121,7 @@ const Login = ({ initialMode = 'login' }) => {
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (err) {
       setLoading(false);
+      console.error('[Firebase Auth Error Code]:', err.code, '[Message]:', err.message, err);
       setError(formatAuthError(err));
     }
   };
@@ -127,6 +131,7 @@ const Login = ({ initialMode = 'login' }) => {
     setError('');
     setGoogleLoading(true);
     try {
+      console.log('[Firebase Auth] Google Sign-In popup opening...');
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       const googleUser = userCredential.user;
@@ -145,6 +150,7 @@ const Login = ({ initialMode = 'login' }) => {
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (err) {
       setGoogleLoading(false);
+      console.error('[Firebase Auth Error Code]:', err.code, '[Message]:', err.message, err);
       setError(formatAuthError(err));
     }
   };

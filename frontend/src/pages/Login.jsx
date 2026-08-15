@@ -1,7 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ShoppingBag, Lock, Mail, UserCheck, User, Sparkles, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  updateProfile
+} from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
+
+// Helper to format clean, user-friendly auth errors
+const formatAuthError = (error) => {
+  const code = error?.code || error?.message || '';
+  if (code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) {
+    return 'Invalid email address or password. Please check your credentials.';
+  }
+  if (code.includes('email-already-in-use')) {
+    return 'An account with this email address already exists. Please sign in instead.';
+  }
+  if (code.includes('weak-password')) {
+    return 'Password is too weak. Please use at least 6 characters.';
+  }
+  if (code.includes('popup-closed-by-user')) {
+    return 'Google sign-in was cancelled.';
+  }
+  return 'Authentication failed. Please verify your details.';
+};
 
 const Login = ({ initialMode = 'login' }) => {
   const [searchParams] = useSearchParams();
@@ -21,10 +48,10 @@ const Login = ({ initialMode = 'login' }) => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { user, login, signup, loginWithGoogle } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Instant Auto-Redirect when User is Logged In
+  // Instant Auto-Redirect if user is already signed in
   useEffect(() => {
     if (user && user.email) {
       const isAdmin = isUserAdmin(user.email) || user.role === 'admin';
@@ -32,6 +59,7 @@ const Login = ({ initialMode = 'login' }) => {
     }
   }, [user, navigate]);
 
+  // Direct Sign In / Sign Up Form Submission Handler
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -51,43 +79,73 @@ const Login = ({ initialMode = 'login' }) => {
       }
 
       setLoading(true);
-      const res = await signup(name.trim(), email.trim(), password, 'user');
-      setLoading(false);
+      try {
+        // Direct Firebase Auth Registration
+        const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+        const newUser = userCredential.user;
 
-      if (res.success) {
-        const isAdmin = isUserAdmin(res.user?.email || email) || res.user?.role === 'admin';
+        // Update profile displayName
+        await updateProfile(newUser, { displayName: name.trim() });
+
+        // Save user profile doc in Firestore silently
+        setDoc(doc(db, 'users', newUser.uid), {
+          uid: newUser.uid,
+          id: newUser.uid,
+          name: name.trim(),
+          email: newUser.email.toLowerCase(),
+          role: 'user',
+          createdAt: new Date().toISOString()
+        }, { merge: true }).catch(() => {});
+
+        const isAdmin = isUserAdmin(newUser.email);
+        setLoading(false);
         navigate(isAdmin ? '/admin' : '/', { replace: true });
-      } else {
-        setError(res.message || 'Registration failed. Please try again.');
+      } catch (err) {
+        setLoading(false);
+        setError(formatAuthError(err));
       }
       return;
     }
 
-    // Sign In Login
+    // Direct Firebase Auth Login
     setLoading(true);
-    const res = await login(email.trim(), password, false);
-    setLoading(false);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const loggedUser = userCredential.user;
 
-    if (res.success) {
-      const userEmail = res.user?.email || email;
-      const isAdmin = isUserAdmin(userEmail) || res.user?.role === 'admin';
+      const isAdmin = isUserAdmin(loggedUser.email);
+      setLoading(false);
       navigate(isAdmin ? '/admin' : '/', { replace: true });
-    } else {
-      setError(res.message || 'Authentication failed. Please check your email and password.');
+    } catch (err) {
+      setLoading(false);
+      setError(formatAuthError(err));
     }
   };
 
+  // Direct Google Social Auth Sign In Handler
   const handleGoogleSignIn = async () => {
     setError('');
     setGoogleLoading(true);
-    const res = await loginWithGoogle();
-    setGoogleLoading(false);
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const googleUser = userCredential.user;
 
-    if (res.success) {
-      const isAdmin = isUserAdmin(res.user?.email) || res.user?.role === 'admin';
+      setDoc(doc(db, 'users', googleUser.uid), {
+        uid: googleUser.uid,
+        id: googleUser.uid,
+        name: googleUser.displayName || 'NexusCart Member',
+        email: googleUser.email ? googleUser.email.toLowerCase() : '',
+        role: 'user',
+        createdAt: new Date().toISOString()
+      }, { merge: true }).catch(() => {});
+
+      const isAdmin = isUserAdmin(googleUser.email);
+      setGoogleLoading(false);
       navigate(isAdmin ? '/admin' : '/', { replace: true });
-    } else {
-      setError(res.message || 'Google authentication failed.');
+    } catch (err) {
+      setGoogleLoading(false);
+      setError(formatAuthError(err));
     }
   };
 
@@ -152,7 +210,7 @@ const Login = ({ initialMode = 'login' }) => {
             <button
               type="button"
               onClick={() => { setAuthMode('login'); setError(''); }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 authMode === 'login'
                   ? 'bg-white text-slate-900 shadow-md shadow-slate-950/5'
                   : 'text-slate-500 hover:text-slate-900'
@@ -164,7 +222,7 @@ const Login = ({ initialMode = 'login' }) => {
             <button
               type="button"
               onClick={() => { setAuthMode('signup'); setError(''); }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 authMode === 'signup'
                   ? 'bg-white text-slate-900 shadow-md shadow-slate-950/5'
                   : 'text-slate-500 hover:text-slate-900'

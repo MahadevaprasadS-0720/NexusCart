@@ -17,13 +17,13 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
+    const saved = sessionStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
+  const [token, setToken] = useState(() => sessionStorage.getItem('token') || '');
   const [role, setRole] = useState(() => {
-    const savedUser = localStorage.getItem('user');
+    const savedUser = sessionStorage.getItem('user');
     if (savedUser) {
       const parsed = JSON.parse(savedUser);
       return isUserAdmin(parsed.email) ? 'admin' : 'user';
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Subscribe to Firebase Authentication State Changes
+  // Subscribe to Firebase Authentication State Changes (Session Isolated)
   useEffect(() => {
     seedInitialDataIfEmpty();
 
@@ -45,17 +45,16 @@ export const AuthProvider = ({ children }) => {
         setUser(userObj);
         setRole(computedRole);
         setToken(firebaseUser.uid);
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('role', computedRole);
-        localStorage.setItem('token', firebaseUser.uid);
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        sessionStorage.setItem('role', computedRole);
+        sessionStorage.setItem('token', firebaseUser.uid);
       } else {
-        // Complete state & storage purge on Sign Out
+        // Complete purge on tab closure or logout
         setUser(null);
         setRole('user');
         setToken('');
-        localStorage.removeItem('user');
-        localStorage.removeItem('role');
-        localStorage.removeItem('token');
+        sessionStorage.clear();
+        localStorage.clear();
       }
       setLoading(false);
     });
@@ -76,9 +75,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userObj);
       setRole(computedRole);
       setToken(res.token);
-      localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('role', computedRole);
-      localStorage.setItem('token', res.token);
+      sessionStorage.setItem('user', JSON.stringify(userObj));
+      sessionStorage.setItem('role', computedRole);
+      sessionStorage.setItem('token', res.token);
       return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
@@ -94,9 +93,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userObj);
       setRole(computedRole);
       setToken(res.token);
-      localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('role', computedRole);
-      localStorage.setItem('token', res.token);
+      sessionStorage.setItem('user', JSON.stringify(userObj));
+      sessionStorage.setItem('role', computedRole);
+      sessionStorage.setItem('token', res.token);
       return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
@@ -112,9 +111,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userObj);
       setRole(computedRole);
       setToken(res.token);
-      localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('role', computedRole);
-      localStorage.setItem('token', res.token);
+      sessionStorage.setItem('user', JSON.stringify(userObj));
+      sessionStorage.setItem('role', computedRole);
+      sessionStorage.setItem('token', res.token);
       return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
@@ -125,9 +124,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken('');
     setRole('user');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    localStorage.removeItem('token');
+    sessionStorage.clear();
+    localStorage.clear();
   };
 
   const isAdmin = isUserAdmin(user?.email);

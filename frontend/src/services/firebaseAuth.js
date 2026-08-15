@@ -5,10 +5,38 @@ import {
   onAuthStateChanged,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  setPersistence,
+  browserSessionPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
+
+// Helper to format clean user-friendly authentication error messages
+const formatAuthError = (error) => {
+  const code = error?.code || error?.message || '';
+  if (code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) {
+    return 'Invalid email address or password. Please check your credentials.';
+  }
+  if (code.includes('email-already-in-use')) {
+    return 'An account with this email address already exists. Please sign in instead.';
+  }
+  if (code.includes('weak-password')) {
+    return 'Password is too weak. Please use at least 6 characters.';
+  }
+  if (code.includes('popup-closed-by-user')) {
+    return 'Google sign-in was cancelled.';
+  }
+  return 'Authentication failed. Please verify your details.';
+};
+
+// Configure persistence safely
+try {
+  setPersistence(auth, browserSessionPersistence).catch(() => {
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
+  });
+} catch (e) {}
 
 // Register User or Admin in Firebase Auth + Firestore
 export const signUpUser = async (name, email, password, role = 'user') => {
@@ -16,7 +44,6 @@ export const signUpUser = async (name, email, password, role = 'user') => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Update Firebase Auth display name
     await updateProfile(user, { displayName: name });
 
     const userProfile = {
@@ -28,7 +55,6 @@ export const signUpUser = async (name, email, password, role = 'user') => {
       createdAt: new Date().toISOString()
     };
 
-    // Async background store in Firestore "users" collection
     setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
 
     return {
@@ -39,12 +65,12 @@ export const signUpUser = async (name, email, password, role = 'user') => {
   } catch (error) {
     return {
       success: false,
-      message: error.message.replace('Firebase: ', '')
+      message: formatAuthError(error)
     };
   }
 };
 
-// Ultra-fast Sign In User (Instant response, no hanging)
+// Ultra-fast Sign In User
 export const signInUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -58,7 +84,6 @@ export const signInUser = async (email, password) => {
       role: 'user'
     };
 
-    // Fast background profile sync
     getDoc(doc(db, 'users', user.uid))
       .then((userSnap) => {
         if (userSnap.exists()) {
@@ -77,12 +102,12 @@ export const signInUser = async (email, password) => {
   } catch (error) {
     return {
       success: false,
-      message: error.message.replace('Firebase: ', '')
+      message: formatAuthError(error)
     };
   }
 };
 
-// Google Social Auth Sign In (Ultra-fast response)
+// Google Social Auth Sign In
 export const signInWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
@@ -107,7 +132,7 @@ export const signInWithGoogle = async () => {
   } catch (error) {
     return {
       success: false,
-      message: error.message.replace('Firebase: ', '')
+      message: formatAuthError(error)
     };
   }
 };
@@ -121,6 +146,8 @@ export const signInAdmin = async (email, password) => {
 export const signOutUser = async () => {
   try {
     await signOut(auth);
+    sessionStorage.clear();
+    localStorage.clear();
     return { success: true };
   } catch (error) {
     return { success: false, message: error.message };
@@ -141,7 +168,6 @@ export const onAuthChange = (callback) => {
 
       callback(profile);
 
-      // Async background role check
       getDoc(doc(db, 'users', user.uid))
         .then((userSnap) => {
           if (userSnap.exists()) {
@@ -157,6 +183,8 @@ export const onAuthChange = (callback) => {
         })
         .catch(() => {});
     } else {
+      sessionStorage.clear();
+      localStorage.clear();
       callback(null);
     }
   });

@@ -1,8 +1,8 @@
 <div align="center">
 
-  # 🚀 NexusCart Pro
-  
-  <p><b>The Ultimate Enterprise-Grade Full-Stack E-Commerce Web Application Experience</b></p>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=38&pause=1000&color=FFCA28&center=true&vCenter=true&width=600&height=80&lines=NexusCart;The+Ultimate+E-Commerce+Platform" alt="Typing Animation" />
+
+  <p><b>An Advanced, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
 
   <p>
     <img src="https://img.shields.io/badge/REACT.JS-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
@@ -16,9 +16,9 @@
 
 ---
 
-## 🌟 Overview
+## ☀️ Overview
 
-**NexusCart Pro** is a next-generation, high-performance, and feature-rich full-stack e-commerce web application engineered with a sleek modern UI, buttery-smooth interactions, and bulletproof security. Built to deliver lightning-fast performance, it offers robust user authentication, real-time cloud data synchronization, dynamic multi-tier product catalog management, and an exceptional shopping workflow tailored for elite retail standards.
+**NexusCart** is a next-generation, high-performance, and feature-rich full-stack e-commerce web application engineered with a sleek modern UI, buttery-smooth interactions, and bulletproof security. Built to deliver lightning-fast performance, it offers robust user authentication, real-time cloud data synchronization, dynamic multi-tier product catalog management, and an exceptional shopping workflow tailored for elite retail standards.
 
 ---
 

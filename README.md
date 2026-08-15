@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://readme-typing-svg.demolab.com?font=Segoe+UI&weight=800&size=36&pause=1000&color=61DAFB&center=true&vCenter=true&width=650&height=70&lines=NexusCart;Advanced+E-Commerce+Platform" alt="Typing Animation" />
+  # 🛒 NexusCart
 
   <p><b>An Industrial-Grade, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
 
@@ -51,3 +51,4 @@ To run this industrial-grade project on your local machine, execute the followin
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/MahadevaprasadS-0720/NexusCart.git](https://github.com/MahadevaprasadS-0720/NexusCart.git)
+   

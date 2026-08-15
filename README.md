@@ -17,26 +17,28 @@
 
 ## ☀️ Overview
 
-NexusCart is a next-generation, feature-rich full-stack e-commerce web application designed with a sleek UI and fluid interactions. Built to deliver lightning-fast performance, it offers secure authentication, seamless real-time syncing, dynamic product catalog management, and a polished user interface for everyday online shopping.
+NexusCart is a next-generation, feature-rich full-stack e-commerce web application designed with a sleek UI and fluid interactions. Built to deliver lightning-fast performance, it offers secure user authentication, real-time cloud data syncing, dynamic product catalog management, and a polished user interface for a seamless online shopping experience.
 
 ---
 
 ## ⚡ Key Features
 
 * **Secure Authentication:** User sign-up, login, and session persistence powered by Firebase Auth.
-* **Dynamic Product Catalog:** Browse products seamlessly across multiple categories like Mobiles, Electronics, Fashion, and more.
-* **Smart Cart & Wishlist:** Real-time management of shopping items, quantities, and user preferences.
-* **Order Tracking & History:** Complete checkout flow allowing users to place orders and review past purchases.
+* **Dynamic Product Catalog:** Browse products seamlessly across multiple categories like Mobiles, Electronics, Fashion, and Home Utilities.
+* **Smart Cart & Wishlist:** Real-time management of shopping items, quantity scaling, and favorite product tracking.
+* **Order Tracking & History:** Complete checkout workflow allowing users to place orders and review past purchase records.
 * **Responsive Layout:** Perfectly optimized for mobile, tablet, and desktop screens.
-* **Cloud Synchronization:** Instant data persistence and reliability using Firebase Firestore.
-* **User Settings & Customization:** Dedicated controls for a personalized user experience.
+* **Cloud Synchronization:** Instant data persistence and reliability using Cloud Firestore.
+* **User Settings & Customization:** Dedicated controls for a personalized shopping experience.
+* **Fast Performance:** Optimized Vite build and clean component architecture for instant page loads.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** React, Vite, Tailwind CSS, Lucide Icons
+* **Frontend:** React, Vite, Tailwind CSS, JavaScript (ES6+)
 * **State & Storage:** Cloud Firestore & Local State Management
+* **Authentication:** Firebase Authentication
 * **Deployment:** Firebase Hosting & GitHub
 
 ---

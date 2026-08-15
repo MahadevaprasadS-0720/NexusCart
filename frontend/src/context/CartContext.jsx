@@ -1,27 +1,59 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  const { user } = useAuth();
+  const userId = user ? (user.uid || user.id) : 'guest';
+
+  // User-isolated Cart State
   const [cartItems, setCartItems] = useState(() => {
-    const saved = localStorage.getItem('cart');
+    if (!userId || userId === 'guest') {
+      const saved = localStorage.getItem('cart_guest');
+      return saved ? JSON.parse(saved) : [];
+    }
+    const saved = localStorage.getItem(`cart_${userId}`);
     return saved ? JSON.parse(saved) : [];
   });
 
+  // User-isolated Wishlist State
   const [wishlist, setWishlist] = useState(() => {
-    const saved = localStorage.getItem('wishlist');
-    return saved ? JSON.parse(saved) : ['prod-101'];
+    if (!userId || userId === 'guest') {
+      const saved = localStorage.getItem('wishlist_guest');
+      return saved ? JSON.parse(saved) : [];
+    }
+    const saved = localStorage.getItem(`wishlist_${userId}`);
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
 
+  // Sync state whenever authenticated User UID changes (Login / Logout / Switch User)
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (user && user.uid) {
+      const userCart = localStorage.getItem(`cart_${user.uid}`);
+      const userWishlist = localStorage.getItem(`wishlist_${user.uid}`);
+      setCartItems(userCart ? JSON.parse(userCart) : []);
+      setWishlist(userWishlist ? JSON.parse(userWishlist) : []);
+    } else {
+      // User logged out: clear state cleanly
+      setCartItems([]);
+      setWishlist([]);
+    }
+  }, [user?.uid]);
 
+  // Persist Cart per User UID
   useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+    const key = user && user.uid ? `cart_${user.uid}` : 'cart_guest';
+    localStorage.setItem(key, JSON.stringify(cartItems));
+  }, [cartItems, user?.uid]);
+
+  // Persist Wishlist per User UID
+  useEffect(() => {
+    const key = user && user.uid ? `wishlist_${user.uid}` : 'wishlist_guest';
+    localStorage.setItem(key, JSON.stringify(wishlist));
+  }, [wishlist, user?.uid]);
 
   const addToCart = (product, quantity = 1) => {
     setCartItems(prev => {
@@ -57,6 +89,9 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
+    if (user && user.uid) {
+      localStorage.removeItem(`cart_${user.uid}`);
+    }
   };
 
   const toggleWishlist = (product) => {

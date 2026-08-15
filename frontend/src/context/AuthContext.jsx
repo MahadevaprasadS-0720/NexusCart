@@ -49,12 +49,13 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('role', computedRole);
         localStorage.setItem('token', firebaseUser.uid);
       } else {
-        const saved = localStorage.getItem('user');
-        if (!saved) {
-          setUser(null);
-          setRole('user');
-          setToken('');
-        }
+        // Complete state & storage purge on Sign Out
+        setUser(null);
+        setRole('user');
+        setToken('');
+        localStorage.removeItem('user');
+        localStorage.removeItem('role');
+        localStorage.removeItem('token');
       }
       setLoading(false);
     });
@@ -127,7 +128,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     localStorage.removeItem('token');
-    localStorage.removeItem('adminDemo');
   };
 
   const isAdmin = isUserAdmin(user?.email);

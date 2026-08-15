@@ -31,12 +31,38 @@ const formatAuthError = (error) => {
   return 'Authentication failed. Please verify your details.';
 };
 
-// Configure persistence safely
+// Configure strict session persistence (isolated per browser tab/session)
 try {
-  setPersistence(auth, browserSessionPersistence).catch(() => {
-    setPersistence(auth, browserLocalPersistence).catch(() => {});
-  });
+  setPersistence(auth, browserSessionPersistence).catch(() => {});
 } catch (e) {}
+
+// Tab Session Keys
+export const TAB_SESSION_MARKER = 'tab_authenticated_session';
+export const TAB_SESSION_ID = 'tab_session_id';
+
+// Check if current tab holds a verified active session
+export const isTabSessionAuthenticated = () => {
+  if (typeof window === 'undefined') return false;
+  return sessionStorage.getItem(TAB_SESSION_MARKER) === 'true';
+};
+
+// Mark tab session as authenticated
+export const setTabSessionAuthenticated = () => {
+  if (typeof window === 'undefined') return;
+  sessionStorage.setItem(TAB_SESSION_MARKER, 'true');
+};
+
+// Helper to purge tab & window storage on logout or stale tab init
+export const purgeTabSession = async () => {
+  try {
+    await signOut(auth);
+  } catch (e) {}
+  if (typeof window !== 'undefined') {
+    sessionStorage.clear();
+    localStorage.clear();
+  }
+};
+
 
 // Register User or Admin in Firebase Auth + Firestore
 export const signUpUser = async (name, email, password, role = 'user') => {
@@ -55,6 +81,7 @@ export const signUpUser = async (name, email, password, role = 'user') => {
       createdAt: new Date().toISOString()
     };
 
+    setTabSessionAuthenticated();
     setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
 
     return {
@@ -75,6 +102,8 @@ export const signInUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+
+    setTabSessionAuthenticated();
 
     const profile = {
       uid: user.uid,
@@ -114,6 +143,8 @@ export const signInWithGoogle = async () => {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
 
+    setTabSessionAuthenticated();
+
     const userProfile = {
       uid: user.uid,
       id: user.uid,
@@ -145,19 +176,25 @@ export const signInAdmin = async (email, password) => {
 // Sign Out
 export const signOutUser = async () => {
   try {
-    await signOut(auth);
-    sessionStorage.clear();
-    localStorage.clear();
+    await purgeTabSession();
     return { success: true };
   } catch (error) {
     return { success: false, message: error.message };
   }
 };
 
-// Auth State Observer
+// Auth State Observer with One-Tab One-Login Enforcement
 export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, (user) => {
     if (user) {
+      // Verify whether current tab session was authenticated
+      if (!isTabSessionAuthenticated()) {
+        // Force purge unauthenticated cross-tab session
+        purgeTabSession();
+        callback(null);
+        return;
+      }
+
       const profile = {
         uid: user.uid,
         id: user.uid,
@@ -183,9 +220,12 @@ export const onAuthChange = (callback) => {
         })
         .catch(() => {});
     } else {
-      sessionStorage.clear();
-      localStorage.clear();
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+        localStorage.clear();
+      }
       callback(null);
     }
   });
 };
+

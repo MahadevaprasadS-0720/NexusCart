@@ -20,6 +20,7 @@ import Checkout from './pages/Checkout';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import MyOrders from './pages/MyOrders';
 import WishlistPage from './pages/WishlistPage';
+import UserProfile from './pages/UserProfile';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
@@ -61,8 +62,24 @@ function App() {
               <Route path="register" element={<Signup />} />
               <Route path="wishlist" element={<WishlistPage />} />
 
-              {/* Shopping Cart & Orders */}
+              {/* Protected User Profile & Shopping Cart & Orders */}
               <Route path="cart" element={<Cart />} />
+              <Route
+                path="profile"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="my-profile"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="checkout"
                 element={

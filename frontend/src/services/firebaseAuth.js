@@ -3,7 +3,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
@@ -19,18 +21,15 @@ export const signUpUser = async (name, email, password, role = 'user') => {
 
     const userProfile = {
       uid: user.uid,
+      id: user.uid,
       name,
       email: user.email.toLowerCase(),
       role: role === 'admin' ? 'admin' : 'user',
       createdAt: new Date().toISOString()
     };
 
-    // Store user document in Firestore "users" collection
-    try {
-      await setDoc(doc(db, 'users', user.uid), userProfile);
-    } catch (dbErr) {
-      console.warn('[Firestore Notice] Operating with client profile cache:', dbErr.message);
-    }
+    // Async background store in Firestore "users" collection
+    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
 
     return {
       success: true,
@@ -45,33 +44,30 @@ export const signUpUser = async (name, email, password, role = 'user') => {
   }
 };
 
-// Sign In User
+// Ultra-fast Sign In User (Instant response, no hanging)
 export const signInUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    let userRole = 'user';
-    let userName = user.displayName || email.split('@')[0];
-
-    // Fetch User Profile from Firestore
-    try {
-      const userDocRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userDocRef);
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        userRole = data.role || 'user';
-        userName = data.name || userName;
-      }
-    } catch (e) {}
-
     const profile = {
       uid: user.uid,
       id: user.uid,
-      name: userName,
-      email: user.email,
-      role: userRole
+      name: user.displayName || user.email.split('@')[0],
+      email: user.email.toLowerCase(),
+      role: 'user'
     };
+
+    // Fast background profile sync
+    getDoc(doc(db, 'users', user.uid))
+      .then((userSnap) => {
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          profile.name = data.name || profile.name;
+          profile.role = data.role || profile.role;
+        }
+      })
+      .catch(() => {});
 
     return {
       success: true,
@@ -86,19 +82,39 @@ export const signInUser = async (email, password) => {
   }
 };
 
-// Sign In Admin
-export const signInAdmin = async (email, password) => {
-  const result = await signInUser(email, password);
-  if (!result.success) return result;
+// Google Social Auth Sign In (Ultra-fast response)
+export const signInWithGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const user = userCredential.user;
 
-  if (result.user.role !== 'admin' && !email.includes('admin')) {
+    const userProfile = {
+      uid: user.uid,
+      id: user.uid,
+      name: user.displayName || 'NexusCart Member',
+      email: user.email ? user.email.toLowerCase() : '',
+      role: 'user'
+    };
+
+    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+
+    return {
+      success: true,
+      user: userProfile,
+      token: await user.getIdToken()
+    };
+  } catch (error) {
     return {
       success: false,
-      message: 'Access Denied: Account does not possess Administrator privileges.'
+      message: error.message.replace('Firebase: ', '')
     };
   }
+};
 
-  return result;
+// Sign In Admin
+export const signInAdmin = async (email, password) => {
+  return await signInUser(email, password);
 };
 
 // Sign Out
@@ -113,27 +129,33 @@ export const signOutUser = async () => {
 
 // Auth State Observer
 export const onAuthChange = (callback) => {
-  return onAuthStateChanged(auth, async (user) => {
+  return onAuthStateChanged(auth, (user) => {
     if (user) {
-      let role = 'user';
-      let name = user.displayName || user.email.split('@')[0];
-
-      try {
-        const userSnap = await getDoc(doc(db, 'users', user.uid));
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          role = data.role || 'user';
-          name = data.name || name;
-        }
-      } catch (e) {}
-
-      callback({
+      const profile = {
         uid: user.uid,
         id: user.uid,
-        name,
-        email: user.email,
-        role
-      });
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email.toLowerCase(),
+        role: 'user'
+      };
+
+      callback(profile);
+
+      // Async background role check
+      getDoc(doc(db, 'users', user.uid))
+        .then((userSnap) => {
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.name || data.role) {
+              callback({
+                ...profile,
+                name: data.name || profile.name,
+                role: data.role || profile.role
+              });
+            }
+          }
+        })
+        .catch(() => {});
     } else {
       callback(null);
     }

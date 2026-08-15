@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, CreditCard, ShieldCheck, CheckCircle, Lock, X, Smartphone } from 'lucide-react';
+import { MapPin, CreditCard, ShieldCheck, CheckCircle, Lock, X, QrCode, Smartphone, Building2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
 const Checkout = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [paymentTab, setPaymentTab] = useState('upi'); // 'upi' | 'card' | 'netbanking'
 
   const [shippingAddress, setShippingAddress] = useState({
-    fullName: 'Alex Johnson',
+    fullName: user ? user.name : 'Alex Johnson',
     phone: '+91 9876543210',
     address: 'Flat 402, Skyline Towers, MG Road',
     city: 'Bengaluru',
@@ -24,26 +28,34 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('UPI / NetBanking');
   const [paymentIntent, setPaymentIntent] = useState(null);
 
-  // Mock Payment Form Fields
+  // Card details state
   const [cardDetails, setCardDetails] = useState({
     number: '4111 2222 3333 4444',
+    name: user ? user.name : 'Alex Johnson',
     expiry: '12/28',
     cvv: '123'
   });
+
+  // UPI details state
   const [upiId, setUpiId] = useState('alex@upi');
+  const [selectedBank, setSelectedBank] = useState('HDFC Bank');
 
   const handleInitiatePayment = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
+    if (!cartItems.length) {
+      alert('Your cart is empty!');
+      return;
+    }
+
+    setLoading(true);
     try {
-      // Step 1: Create Payment Intent / Order with Gateway
+      // Step 1: Create Payment Intent with simulated gateway
       const intentRes = await api.createPaymentIntent(cartTotal, `rec_${Date.now()}`);
       if (intentRes.success) {
         setPaymentIntent(intentRes);
       }
     } catch (err) {}
-
     setLoading(false);
     setShowPaymentModal(true);
   };
@@ -52,17 +64,20 @@ const Checkout = () => {
     setPaymentProcessing(true);
 
     try {
-      // Step 2: Verify Payment Transaction with Backend
+      // Step 2: Verify Payment Transaction
+      const payId = `pay_razor_${Math.floor(100000 + Math.random() * 900000)}`;
       await api.verifyPayment({
-        razorpay_payment_id: `pay_${Math.floor(100000 + Math.random() * 900000)}`,
+        razorpay_payment_id: payId,
         paymentIntentId: paymentIntent?.clientSecret || `pi_${Date.now()}`,
-        paymentMethod
+        paymentMethod: paymentTab === 'upi' ? 'UPI QR Code' : paymentTab === 'card' ? 'Credit/Debit Card' : 'NetBanking'
       });
 
-      // Step 3: Place Order with Payment Status: 'Paid'
+      // Step 3: Commit Order Document into Firebase Firestore
       const orderPayload = {
+        userId: user ? user.uid || user.id : 'usr-guest',
+        customerName: shippingAddress.fullName,
+        customerEmail: user ? user.email : 'customer@example.com',
         orderItems: cartItems.map(item => ({
-          product: item.id || item._id || item.title,
           productId: item.id || item._id,
           title: item.name || item.title,
           price: item.price,
@@ -70,21 +85,20 @@ const Checkout = () => {
           image: item.image || (item.images ? item.images[0] : '')
         })),
         shippingAddress,
-        paymentMethod,
+        paymentMethod: paymentTab === 'upi' ? 'UPI QR Code' : paymentTab === 'card' ? 'Credit Card' : 'NetBanking',
         paymentStatus: 'Paid',
         totalPrice: cartTotal,
-        totalAmount: cartTotal
+        totalAmount: cartTotal,
+        transactionId: payId
       };
 
+      // Call Firestore database service
       const res = await api.createOrder(orderPayload);
       clearCart();
       setShowPaymentModal(false);
 
-      if (res.success && res.order) {
-        navigate(`/order-success/${res.order.id || res.order._id}`);
-      } else {
-        navigate(`/order-success/ORD-${Math.floor(10000 + Math.random() * 90000)}`);
-      }
+      const createdOrderId = res.order ? (res.order.id || res.order._id) : `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+      navigate(`/order-success/${createdOrderId}`);
     } catch (err) {
       clearCart();
       setShowPaymentModal(false);
@@ -95,18 +109,21 @@ const Checkout = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1.5rem' }}>
+    <div style={{ maxWidth: '1050px', margin: '2rem auto', padding: '0 1.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-        <ShieldCheck size={28} color="#2874f0" />
-        <h1 style={{ fontSize: '1.6rem', fontWeight: '800' }}>Order Checkout & Payment Gateway</h1>
+        <ShieldCheck size={32} color="#2874f0" />
+        <div>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>NexusCart Secure Checkout</h1>
+          <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Complete your order with Razorpay & Firebase Firestore</p>
+        </div>
       </div>
 
       <form onSubmit={handleInitiatePayment} style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Step 1: Delivery Address */}
+          {/* Section 1: Delivery Address */}
           <div style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
-              <MapPin size={20} color="#2874f0" /> 1. Delivery Address
+              <MapPin size={20} color="#2874f0" /> 1. Shipping Address
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -117,7 +134,7 @@ const Checkout = () => {
                   required
                   value={shippingAddress.fullName}
                   onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
                 />
               </div>
 
@@ -128,7 +145,7 @@ const Checkout = () => {
                   required
                   value={shippingAddress.phone}
                   onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
                 />
               </div>
 
@@ -139,7 +156,7 @@ const Checkout = () => {
                   required
                   value={shippingAddress.address}
                   onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
                 />
               </div>
 
@@ -150,7 +167,7 @@ const Checkout = () => {
                   required
                   value={shippingAddress.city}
                   onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
                 />
               </div>
 
@@ -161,21 +178,21 @@ const Checkout = () => {
                   required
                   value={shippingAddress.postalCode}
                   onChange={(e) => setShippingAddress({ ...shippingAddress, postalCode: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
                 />
               </div>
             </div>
           </div>
 
-          {/* Step 2: Payment Gateway Selection */}
+          {/* Section 2: Payment Mode */}
           <div style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
               <CreditCard size={20} color="#2874f0" /> 2. Payment Gateway Mode
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {['UPI / NetBanking (Google Pay, PhonePe, Paytm)', 'Credit / Debit Card (Visa, Mastercard)', 'Cash on Delivery (COD)'].map((method) => (
-                <label key={method} style={{ padding: '0.8rem', borderRadius: '8px', border: paymentMethod === method ? '2px solid #2874f0' : '1px solid #cbd5e1', display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', background: paymentMethod === method ? '#eff6ff' : '#fff' }}>
+              {['UPI QR Code (Google Pay, PhonePe, Paytm)', 'Credit / Debit Card (Visa, Mastercard, RuPay)', 'NetBanking / Direct Bank Transfer'].map((method) => (
+                <label key={method} style={{ padding: '0.85rem', borderRadius: '8px', border: paymentMethod === method ? '2px solid #2874f0' : '1px solid #cbd5e1', display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', background: paymentMethod === method ? '#eff6ff' : '#fff' }}>
                   <input
                     type="radio"
                     name="payMethod"
@@ -195,17 +212,17 @@ const Checkout = () => {
             Order Summary
           </h3>
 
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
             {cartItems.map((item) => (
-              <div key={item.id || item._id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#475569' }}>{item.quantity}x {(item.name || item.title).substring(0, 22)}...</span>
+              <div key={item.id || item._id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
+                <span style={{ color: '#475569' }}>{item.quantity}x {(item.name || item.title).substring(0, 24)}...</span>
                 <span style={{ fontWeight: '700' }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
               </div>
             ))}
           </div>
 
           <div style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '0.8rem', display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: '800' }}>
-            <span>Total Amount:</span>
+            <span>Total Payable:</span>
             <span style={{ color: '#2874f0' }}>₹{cartTotal.toLocaleString('en-IN')}</span>
           </div>
 
@@ -225,34 +242,148 @@ const Checkout = () => {
               cursor: 'pointer'
             }}
           >
-            {loading ? 'Initializing Payment...' : 'Proceed to Pay & Place Order'}
+            {loading ? 'Initializing Gateway...' : 'Proceed to Pay Now'}
           </button>
         </div>
       </form>
 
-      {/* Stripe / Razorpay Mock Payment Gateway Modal */}
+      {/* Razorpay & UPI QR Code Interactive Payment Modal */}
       {showPaymentModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', border: '1px solid #cbd5e1', padding: '2rem', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', border: '1px solid #cbd5e1', padding: '2rem', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+            
+            {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', paddingBottom: '0.8rem', borderBottom: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '800', fontSize: '1.1rem', color: '#0f172a' }}>
-                <ShieldCheck color="#2874f0" size={24} /> Razorpay / Stripe Secure Checkout
+                <ShieldCheck color="#2874f0" size={24} /> Razorpay & Firebase Gateway
               </div>
               <button onClick={() => setShowPaymentModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ background: '#eff6ff', padding: '1rem', borderRadius: '8px', marginBottom: '1.2rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.82rem', color: '#1e40af', fontWeight: '600' }}>Amount to Pay</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#2874f0' }}>
+            {/* Total Amount Badge */}
+            <div style={{ background: '#eff6ff', padding: '1rem', borderRadius: '10px', marginBottom: '1.2rem', textAlign: 'center', border: '1px solid #bfdbfe' }}>
+              <div style={{ fontSize: '0.82rem', color: '#1e40af', fontWeight: '600' }}>Total Amount to Pay</div>
+              <div style={{ fontSize: '1.9rem', fontWeight: '800', color: '#2874f0' }}>
                 ₹{cartTotal.toLocaleString('en-IN')}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Order ID: {paymentIntent?.orderId || 'pay_ord_98421'}</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                Order ID: {paymentIntent?.orderId || `pay_${Math.floor(100000 + Math.random() * 900000)}`}
+              </div>
             </div>
 
-            {paymentMethod.includes('Card') ? (
+            {/* Payment Method Switcher Tabs */}
+            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', marginBottom: '1.2rem' }}>
+              <button
+                type="button"
+                onClick={() => setPaymentTab('upi')}
+                style={{
+                  flex: 1,
+                  padding: '0.55rem',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '700',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  background: paymentTab === 'upi' ? '#ffffff' : 'transparent',
+                  color: paymentTab === 'upi' ? '#2874f0' : '#64748b',
+                  boxShadow: paymentTab === 'upi' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <QrCode size={16} /> UPI / QR Code
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentTab('card')}
+                style={{
+                  flex: 1,
+                  padding: '0.55rem',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '700',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  background: paymentTab === 'card' ? '#ffffff' : 'transparent',
+                  color: paymentTab === 'card' ? '#2874f0' : '#64748b',
+                  boxShadow: paymentTab === 'card' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <CreditCard size={16} /> Card
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentTab('netbanking')}
+                style={{
+                  flex: 1,
+                  padding: '0.55rem',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '700',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  background: paymentTab === 'netbanking' ? '#ffffff' : 'transparent',
+                  color: paymentTab === 'netbanking' ? '#2874f0' : '#64748b',
+                  boxShadow: paymentTab === 'netbanking' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <Building2 size={16} /> NetBanking
+              </button>
+            </div>
+
+            {/* Tab 1: UPI QR Code & VPA */}
+            {paymentTab === 'upi' && (
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', padding: '1.2rem', borderRadius: '12px', display: 'inline-block', marginBottom: '0.8rem' }}>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=nexuscart@upi%26pn=NexusCart%26am=${cartTotal}`}
+                    alt="Scan UPI QR Code to Pay"
+                    style={{ width: '140px', height: '140px', display: 'block', margin: '0 auto' }}
+                  />
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem', fontWeight: '700' }}>
+                    Scan with GPay, PhonePe, Paytm
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', textAlign: 'left' }}>
+                    Or Enter VPA / UPI ID:
+                  </label>
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    placeholder="username@upi"
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: Credit / Debit Card Form */}
+            {paymentTab === 'card' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>Cardholder Name</label>
+                  <input
+                    type="text"
+                    value={cardDetails.name}
+                    onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  />
+                </div>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>Card Number</label>
                   <input
@@ -283,18 +414,29 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Tab 3: NetBanking */}
+            {paymentTab === 'netbanking' && (
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>Virtual Payment Address (VPA / UPI ID)</label>
-                <input
-                  type="text"
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.4rem' }}>
+                  Select Bank for Direct Debit:
+                </label>
+                <select
+                  value={selectedBank}
+                  onChange={(e) => setSelectedBank(e.target.value)}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: '600' }}
+                >
+                  <option value="HDFC Bank">HDFC Bank</option>
+                  <option value="ICICI Bank">ICICI Bank</option>
+                  <option value="State Bank of India (SBI)">State Bank of India (SBI)</option>
+                  <option value="Axis Bank">Axis Bank</option>
+                  <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                </select>
               </div>
             )}
 
+            {/* Action Pay Button */}
             <button
               onClick={handleConfirmGatewayPayment}
               disabled={paymentProcessing}
@@ -303,22 +445,23 @@ const Checkout = () => {
                 background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
                 color: '#ffffff',
                 border: 'none',
-                padding: '0.85rem',
+                padding: '0.9rem',
                 borderRadius: '8px',
                 fontWeight: '800',
-                fontSize: '1rem',
+                fontSize: '1.05rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem'
+                gap: '0.5rem',
+                boxShadow: '0 4px 12px rgba(22,163,74,0.3)'
               }}
             >
               {paymentProcessing ? (
-                'Processing Payment Gateway...'
+                'Committing Order to Firestore...'
               ) : (
                 <>
-                  <Lock size={18} /> Pay ₹{cartTotal.toLocaleString('en-IN')} via Gateway
+                  <Lock size={18} /> Pay ₹{cartTotal.toLocaleString('en-IN')} & Commit Order
                 </>
               )}
             </button>

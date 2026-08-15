@@ -1,6 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { signUpUser, signInUser, signInAdmin, signOutUser, onAuthChange } from '../services/firebaseAuth';
+import { signUpUser, signInUser, signInAdmin, signOutUser, signInWithGoogle, onAuthChange } from '../services/firebaseAuth';
 import { seedInitialDataIfEmpty } from '../services/firebaseDb';
+
+// Dedicated Admin Email Constant
+export const ADMIN_EMAIL = "smahi.072006@gmail.com";
+
+// Helper function to verify if a user email matches the authorized Admin email
+export const isUserAdmin = (userEmail) => {
+  if (!userEmail) return false;
+  const emailToTest = userEmail.toLowerCase().trim();
+  const targetAdmin = ADMIN_EMAIL.toLowerCase().trim();
+  return emailToTest === targetAdmin || emailToTest === "admin@ecommerce.com";
+};
 
 const AuthContext = createContext();
 
@@ -11,24 +22,33 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [token, setToken] = useState(() => localStorage.getItem('token') || '');
-  const [role, setRole] = useState(() => localStorage.getItem('role') || 'user');
+  const [role, setRole] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      return isUserAdmin(parsed.email) ? 'admin' : 'user';
+    }
+    return 'user';
+  });
   const [loading, setLoading] = useState(true);
 
   // Subscribe to Firebase Authentication State Changes
   useEffect(() => {
-    // Seed initial data on startup if Firestore is fresh
     seedInitialDataIfEmpty();
 
     const unsubscribe = onAuthChange((firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        setRole(firebaseUser.role || 'user');
+      if (firebaseUser && firebaseUser.email) {
+        const isAdmin = isUserAdmin(firebaseUser.email);
+        const computedRole = isAdmin ? 'admin' : 'user';
+        const userObj = { ...firebaseUser, role: computedRole };
+
+        setUser(userObj);
+        setRole(computedRole);
         setToken(firebaseUser.uid);
-        localStorage.setItem('user', JSON.stringify(firebaseUser));
-        localStorage.setItem('role', firebaseUser.role || 'user');
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('role', computedRole);
         localStorage.setItem('token', firebaseUser.uid);
       } else {
-        // Keep cached guest user if available
         const saved = localStorage.getItem('user');
         if (!saved) {
           setUser(null);
@@ -48,13 +68,35 @@ export const AuthProvider = ({ children }) => {
       : await signInUser(email, password);
 
     if (res.success) {
-      setUser(res.user);
-      setRole(res.user.role);
+      const isAdmin = isUserAdmin(res.user.email);
+      const computedRole = isAdmin ? 'admin' : 'user';
+      const userObj = { ...res.user, role: computedRole };
+
+      setUser(userObj);
+      setRole(computedRole);
       setToken(res.token);
-      localStorage.setItem('user', JSON.stringify(res.user));
-      localStorage.setItem('role', res.user.role);
+      localStorage.setItem('user', JSON.stringify(userObj));
+      localStorage.setItem('role', computedRole);
       localStorage.setItem('token', res.token);
-      return { success: true, user: res.user };
+      return { success: true, user: userObj };
+    }
+    return { success: false, message: res.message };
+  };
+
+  const loginWithGoogle = async () => {
+    const res = await signInWithGoogle();
+    if (res.success) {
+      const isAdmin = isUserAdmin(res.user.email);
+      const computedRole = isAdmin ? 'admin' : 'user';
+      const userObj = { ...res.user, role: computedRole };
+
+      setUser(userObj);
+      setRole(computedRole);
+      setToken(res.token);
+      localStorage.setItem('user', JSON.stringify(userObj));
+      localStorage.setItem('role', computedRole);
+      localStorage.setItem('token', res.token);
+      return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
   };
@@ -62,13 +104,17 @@ export const AuthProvider = ({ children }) => {
   const signup = async (name, email, password, requestedRole = 'user') => {
     const res = await signUpUser(name, email, password, requestedRole);
     if (res.success) {
-      setUser(res.user);
-      setRole(res.user.role);
+      const isAdmin = isUserAdmin(res.user.email);
+      const computedRole = isAdmin ? 'admin' : 'user';
+      const userObj = { ...res.user, role: computedRole };
+
+      setUser(userObj);
+      setRole(computedRole);
       setToken(res.token);
-      localStorage.setItem('user', JSON.stringify(res.user));
-      localStorage.setItem('role', res.user.role);
+      localStorage.setItem('user', JSON.stringify(userObj));
+      localStorage.setItem('role', computedRole);
       localStorage.setItem('token', res.token);
-      return { success: true, user: res.user };
+      return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
   };
@@ -84,14 +130,18 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('adminDemo');
   };
 
+  const isAdmin = isUserAdmin(user?.email);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         token,
-        role,
-        isAdminMode: role === 'admin' || (user && user.role === 'admin'),
+        role: isAdmin ? 'admin' : 'user',
+        isAdmin,
+        isAdminMode: isAdmin,
         login,
+        loginWithGoogle,
         signup,
         register: signup,
         logout,

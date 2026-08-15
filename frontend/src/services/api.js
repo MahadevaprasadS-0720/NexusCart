@@ -12,12 +12,16 @@ import {
   updateProduct,
   deleteProduct,
   getCategories,
+  getProductReviews,
+  addProductReview,
   createOrder,
   getUserOrders,
   getAllOrders,
   updateOrderStatus,
   getAllUsers,
   updateUserRole,
+  getUserProfile,
+  updateUserProfile,
   getDashboardAnalytics,
   seedInitialDataIfEmpty
 } from './firebaseDb';
@@ -61,6 +65,14 @@ export const api = {
 
   async getProductById(id) {
     return await getProductById(id);
+  },
+
+  async getProductReviews(productId) {
+    return await getProductReviews(productId);
+  },
+
+  async addProductReview(productId, reviewData) {
+    return await addProductReview(productId, reviewData);
   },
 
   async getCategories() {
@@ -125,6 +137,14 @@ export const api = {
   },
 
   // Users & Admin Operations
+  async getUserProfile(userId) {
+    return await getUserProfile(userId);
+  },
+
+  async updateUserProfile(userId, updates) {
+    return await updateUserProfile(userId, updates);
+  },
+
   async getAllUsers() {
     return await getAllUsers();
   },

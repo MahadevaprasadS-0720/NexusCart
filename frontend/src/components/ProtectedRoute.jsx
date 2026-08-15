@@ -1,20 +1,27 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, isUserAdmin } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, token, role } = useAuth();
+  const { user, loading } = useAuth();
 
-  // If not logged in at all
-  if (!token && !user) {
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="text-slate-500 font-bold text-sm">Verifying authentication & admin credentials...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // If route is restricted to admins only
+  // Admin Route Access Guard based purely on matching email
   if (adminOnly) {
-    const isAdmin = role === 'admin' || (user && user.role === 'admin');
+    const isAdmin = isUserAdmin(user.email);
     if (!isAdmin) {
-      alert('Access Denied: You need Administrator privileges to access the Admin Dashboard.');
+      // Redirect regular users away from admin dashboard
       return <Navigate to="/" replace />;
     }
   }

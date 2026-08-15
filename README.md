@@ -1,8 +1,6 @@
 <div align="center">
 
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=header&text=NexusCart&fontSize=40&fontColor=fff&animation=fadeIn" width="100%" />
-
-  <p><i>🛒 The Ultimate Modern & High-Performance E-Commerce Shopping Experience 🛒</i></p>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=0,4,15,25&height=130&section=header&text=NexusCart&fontSize=42&fontColor=FFCA28&fontAlignY=50&animation=fadeIn&desc=Modern%20Full-Stack%20E-Commerce%20Ecosystem&descSize=16&descColor=fff" width="100%" />
 
   <p>
     <img src="https://img.shields.io/badge/REACT-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />

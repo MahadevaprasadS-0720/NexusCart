@@ -69,6 +69,9 @@ export const AuthProvider = ({ children }) => {
           sessionStorage.setItem('user', JSON.stringify(userObj));
           sessionStorage.setItem('role', computedRole);
           sessionStorage.setItem('token', firebaseUser.uid);
+          localStorage.setItem('user', JSON.stringify(userObj));
+          localStorage.setItem('role', computedRole);
+          localStorage.setItem('token', firebaseUser.uid);
         }
       } else {
         setUser(null);
@@ -103,6 +106,9 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem('user', JSON.stringify(userObj));
         sessionStorage.setItem('role', computedRole);
         sessionStorage.setItem('token', res.token);
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('role', computedRole);
+        localStorage.setItem('token', res.token);
       }
       return { success: true, user: userObj };
     }
@@ -124,6 +130,9 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem('user', JSON.stringify(userObj));
         sessionStorage.setItem('role', computedRole);
         sessionStorage.setItem('token', res.token);
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('role', computedRole);
+        localStorage.setItem('token', res.token);
       }
       return { success: true, user: userObj };
     }
@@ -145,6 +154,9 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem('user', JSON.stringify(userObj));
         sessionStorage.setItem('role', computedRole);
         sessionStorage.setItem('token', res.token);
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('role', computedRole);
+        localStorage.setItem('token', res.token);
       }
       return { success: true, user: userObj };
     }

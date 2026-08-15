@@ -36,33 +36,45 @@ export const seedInitialDataIfEmpty = async () => {
       }
     }
   } catch (e) {
-    console.log('[Firestore Notice] Auto-seed status:', e.message);
+    // Quiet notice if Firestore offline or unseeded
   }
 };
 
-// Real-Time Products Listener
+// Real-Time Products Listener (with Error Callback to avoid Database Closing warnings)
 export const subscribeToProducts = (callback) => {
   try {
-    return onSnapshot(collection(db, PRODUCTS_COL), (snapshot) => {
-      if (!snapshot.empty) {
-        const prods = snapshot.docs.map(d => ({ id: d.id, _id: d.id, ...d.data() }));
-        callback(prods);
+    return onSnapshot(
+      collection(db, PRODUCTS_COL),
+      (snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const prods = snapshot.docs.map(d => ({ id: d.id, _id: d.id, ...d.data() }));
+          callback(prods);
+        }
+      },
+      (error) => {
+        // Silently handle Firestore tab hidden / connection close events
       }
-    });
+    );
   } catch (e) {
     return () => {};
   }
 };
 
-// Real-Time Orders Listener
+// Real-Time Orders Listener (with Error Callback to avoid Database Closing warnings)
 export const subscribeToOrders = (callback) => {
   try {
-    return onSnapshot(collection(db, ORDERS_COL), (snapshot) => {
-      if (!snapshot.empty) {
-        const ords = snapshot.docs.map(d => ({ id: d.id, _id: d.id, ...d.data() }));
-        callback(ords);
+    return onSnapshot(
+      collection(db, ORDERS_COL),
+      (snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const ords = snapshot.docs.map(d => ({ id: d.id, _id: d.id, ...d.data() }));
+          callback(ords);
+        }
+      },
+      (error) => {
+        // Silently handle Firestore tab hidden / connection close events
       }
-    });
+    );
   } catch (e) {
     return () => {};
   }

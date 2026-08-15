@@ -30,7 +30,7 @@ export const formatAuthError = (error) => {
   return 'Authentication failed. Please verify your details.';
 };
 
-// Configure safe standard local persistence for reliable browser sessions
+// Configure standard local persistence
 try {
   setPersistence(auth, browserLocalPersistence).catch(() => {});
 } catch (e) {}
@@ -53,12 +53,8 @@ export const signUpUser = async (name, email, password, role = 'user') => {
       createdAt: new Date().toISOString()
     };
 
-    // Ensure Firestore user document is created immediately to satisfy Firestore Security Rules
-    try {
-      await setDoc(doc(db, 'users', user.uid), userProfile, { merge: true });
-    } catch (dbErr) {
-      console.warn('Firestore user doc creation warning:', dbErr);
-    }
+    // Non-blocking Firestore user profile creation
+    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
 
     const token = await user.getIdToken();
 
@@ -89,19 +85,18 @@ export const signInUser = async (email, password) => {
       role: 'user'
     };
 
-    // Fetch user profile doc from Firestore if present, or create doc if missing
-    try {
-      const userSnap = await getDoc(doc(db, 'users', user.uid));
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        profile.name = data.name || profile.name;
-        profile.role = data.role || profile.role;
-      } else {
-        await setDoc(doc(db, 'users', user.uid), profile, { merge: true });
-      }
-    } catch (e) {
-      console.warn('Firestore doc check warning:', e);
-    }
+    // Fetch or create user doc from Firestore silently
+    getDoc(doc(db, 'users', user.uid))
+      .then((userSnap) => {
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          profile.name = data.name || profile.name;
+          profile.role = data.role || profile.role;
+        } else {
+          setDoc(doc(db, 'users', user.uid), profile, { merge: true }).catch(() => {});
+        }
+      })
+      .catch(() => {});
 
     const token = await user.getIdToken();
 
@@ -134,18 +129,7 @@ export const signInWithGoogle = async () => {
       createdAt: new Date().toISOString()
     };
 
-    try {
-      const userSnap = await getDoc(doc(db, 'users', user.uid));
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        userProfile.name = data.name || userProfile.name;
-        userProfile.role = data.role || userProfile.role;
-      } else {
-        await setDoc(doc(db, 'users', user.uid), userProfile, { merge: true });
-      }
-    } catch (e) {
-      console.warn('Google Auth Firestore doc creation warning:', e);
-    }
+    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
 
     const token = await user.getIdToken();
 
@@ -183,7 +167,7 @@ export const signOutUser = async () => {
 
 // Auth State Observer
 export const onAuthChange = (callback) => {
-  return onAuthStateChanged(auth, async (user) => {
+  return onAuthStateChanged(auth, (user) => {
     if (user) {
       const profile = {
         uid: user.uid,
@@ -193,16 +177,22 @@ export const onAuthChange = (callback) => {
         role: 'user'
       };
 
-      try {
-        const userSnap = await getDoc(doc(db, 'users', user.uid));
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          profile.name = data.name || profile.name;
-          profile.role = data.role || profile.role;
-        }
-      } catch (e) {}
-
       callback(profile);
+
+      getDoc(doc(db, 'users', user.uid))
+        .then((userSnap) => {
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.name || data.role) {
+              callback({
+                ...profile,
+                name: data.name || profile.name,
+                role: data.role || profile.role
+              });
+            }
+          }
+        })
+        .catch(() => {});
     } else {
       if (typeof window !== 'undefined') {
         sessionStorage.clear();

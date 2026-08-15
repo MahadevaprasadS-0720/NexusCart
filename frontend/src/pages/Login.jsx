@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ShoppingBag, Lock, Mail, ShieldCheck, UserCheck, User, Sparkles, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Lock, Mail, UserCheck, User, Sparkles, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 
 const Login = ({ initialMode = 'login' }) => {
@@ -24,7 +24,7 @@ const Login = ({ initialMode = 'login' }) => {
   const { user, login, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  // Auto-Redirect if user is already authenticated
+  // Instant Auto-Redirect when User is Logged In
   useEffect(() => {
     if (user && user.email) {
       const isAdmin = isUserAdmin(user.email) || user.role === 'admin';
@@ -289,7 +289,7 @@ const Login = ({ initialMode = 'login' }) => {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={googleLoading}
-              className="w-full bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs py-3 px-4 rounded-xl border border-slate-200 flex items-center justify-center gap-3 transition-all shadow-sm hover:shadow"
+              className="w-full bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs py-3 px-4 rounded-xl border border-slate-200 flex items-center justify-center gap-3 transition-all shadow-sm hover:shadow cursor-pointer"
             >
               {googleLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-slate-500" />

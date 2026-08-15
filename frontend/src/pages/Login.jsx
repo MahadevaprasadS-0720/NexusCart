@@ -14,12 +14,16 @@ import { useAuth, isUserAdmin } from '../context/AuthContext';
 
 // Helper to format clean, user-friendly auth errors for mobile & desktop
 const formatAuthError = (error) => {
-  const code = error?.code || error?.message || '';
+  const code = (error?.code || error?.message || '').toLowerCase();
+  
+  if (code.includes('database') || code.includes('closing') || code.includes('hidden') || code.includes('internal error')) {
+    return 'Authentication failed. Please verify your email address and password.';
+  }
   if (code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) {
-    return 'Invalid email address or password. Please check your details.';
+    return 'Invalid email address or password. Please check your credentials.';
   }
   if (code.includes('email-already-in-use')) {
-    return 'An account with this email address already exists. Please sign in.';
+    return 'An account with this email address already exists. Please sign in instead.';
   }
   if (code.includes('weak-password')) {
     return 'Password is too weak. Please use at least 6 characters.';
@@ -85,7 +89,7 @@ const Login = ({ initialMode = 'login' }) => {
 
       setLoading(true);
       try {
-        console.log('[Firebase Mobile Auth] Registration initiated for:', cleanEmail);
+        console.log('[Firebase Auth] Registering user:', cleanEmail);
         const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
         const newUser = userCredential.user;
 
@@ -105,7 +109,7 @@ const Login = ({ initialMode = 'login' }) => {
         navigate(isAdmin ? '/admin' : '/', { replace: true });
       } catch (err) {
         setLoading(false);
-        console.error('[Firebase Mobile Auth Registration Error]:', err.code, err.message);
+        console.error('[Firebase Auth Error Code]:', err.code, err.message);
         setError(formatAuthError(err));
       }
       return;
@@ -114,7 +118,7 @@ const Login = ({ initialMode = 'login' }) => {
     // Sign In Login
     setLoading(true);
     try {
-      console.log('[Firebase Mobile Auth] Login initiated for:', cleanEmail);
+      console.log('[Firebase Auth] Signing in user:', cleanEmail);
       const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
       const loggedUser = userCredential.user;
 
@@ -123,7 +127,7 @@ const Login = ({ initialMode = 'login' }) => {
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (err) {
       setLoading(false);
-      console.error('[Firebase Mobile Auth Login Error]:', err.code, err.message);
+      console.error('[Firebase Auth Error Code]:', err.code, err.message);
       setError(formatAuthError(err));
     }
   };
@@ -133,7 +137,7 @@ const Login = ({ initialMode = 'login' }) => {
     setError('');
     setGoogleLoading(true);
     try {
-      console.log('[Firebase Mobile Auth] Opening Google Popup...');
+      console.log('[Firebase Auth] Opening Google Sign In Popup...');
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       
@@ -154,7 +158,7 @@ const Login = ({ initialMode = 'login' }) => {
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (err) {
       setGoogleLoading(false);
-      console.error('[Firebase Mobile Auth Google Error]:', err.code, err.message);
+      console.error('[Firebase Auth Google Error]:', err.code, err.message);
       setError(formatAuthError(err));
     }
   };

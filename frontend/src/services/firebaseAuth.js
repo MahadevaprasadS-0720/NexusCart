@@ -12,9 +12,13 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
-// Helper to format clean user-friendly authentication error messages
+// Helper to format clean, user-friendly authentication error messages without leaking database strings
 export const formatAuthError = (error) => {
-  const code = error?.code || error?.message || '';
+  const code = (error?.code || error?.message || '').toLowerCase();
+  
+  if (code.includes('database') || code.includes('closing') || code.includes('hidden') || code.includes('internal error')) {
+    return 'Authentication failed. Please verify your email address and password.';
+  }
   if (code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) {
     return 'Invalid email address or password. Please check your credentials.';
   }
@@ -33,7 +37,7 @@ export const formatAuthError = (error) => {
   return 'Authentication failed. Please verify your details.';
 };
 
-// Configure standard local persistence
+// Configure standard local persistence (allows simultaneous logins on multiple devices)
 try {
   setPersistence(auth, browserLocalPersistence).catch(() => {});
 } catch (e) {}
@@ -41,23 +45,25 @@ try {
 // Register User or Admin in Firebase Auth + Firestore
 export const signUpUser = async (name, email, password, role = 'user') => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
     const user = userCredential.user;
 
     // Update Firebase Auth profile name
-    await updateProfile(user, { displayName: name });
+    await updateProfile(user, { displayName: name.trim() }).catch(() => {});
 
     const userProfile = {
       uid: user.uid,
       id: user.uid,
-      name,
+      name: name.trim(),
       email: user.email.toLowerCase(),
       role: role === 'admin' ? 'admin' : 'user',
       createdAt: new Date().toISOString()
     };
 
     // Non-blocking Firestore user profile creation
-    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+    try {
+      setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+    } catch (e) {}
 
     const token = await user.getIdToken();
 
@@ -77,7 +83,7 @@ export const signUpUser = async (name, email, password, role = 'user') => {
 // Sign In User
 export const signInUser = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
     const user = userCredential.user;
 
     const profile = {
@@ -89,17 +95,19 @@ export const signInUser = async (email, password) => {
     };
 
     // Fetch or create user doc from Firestore silently
-    getDoc(doc(db, 'users', user.uid))
-      .then((userSnap) => {
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          profile.name = data.name || profile.name;
-          profile.role = data.role || profile.role;
-        } else {
-          setDoc(doc(db, 'users', user.uid), profile, { merge: true }).catch(() => {});
-        }
-      })
-      .catch(() => {});
+    try {
+      getDoc(doc(db, 'users', user.uid))
+        .then((userSnap) => {
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            profile.name = data.name || profile.name;
+            profile.role = data.role || profile.role;
+          } else {
+            setDoc(doc(db, 'users', user.uid), profile, { merge: true }).catch(() => {});
+          }
+        })
+        .catch(() => {});
+    } catch (e) {}
 
     const token = await user.getIdToken();
 
@@ -120,6 +128,7 @@ export const signInUser = async (email, password) => {
 export const signInWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
 
@@ -132,7 +141,9 @@ export const signInWithGoogle = async () => {
       createdAt: new Date().toISOString()
     };
 
-    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+    try {
+      setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+    } catch (e) {}
 
     const token = await user.getIdToken();
 
@@ -182,20 +193,22 @@ export const onAuthChange = (callback) => {
 
       callback(profile);
 
-      getDoc(doc(db, 'users', user.uid))
-        .then((userSnap) => {
-          if (userSnap.exists()) {
-            const data = userSnap.data();
-            if (data.name || data.role) {
-              callback({
-                ...profile,
-                name: data.name || profile.name,
-                role: data.role || profile.role
-              });
+      try {
+        getDoc(doc(db, 'users', user.uid))
+          .then((userSnap) => {
+            if (userSnap.exists()) {
+              const data = userSnap.data();
+              if (data.name || data.role) {
+                callback({
+                  ...profile,
+                  name: data.name || profile.name,
+                  role: data.role || profile.role
+                });
+              }
             }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+      } catch (e) {}
     } else {
       if (typeof window !== 'undefined') {
         sessionStorage.clear();

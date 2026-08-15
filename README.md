@@ -1,6 +1,6 @@
 <div align="center">
 
-  # 🛒 NexusCart — Advanced E-Commerce Platform
+  <img src="https://readme-typing-svg.demolab.com?font=Segoe+UI&weight=800&size=36&pause=1000&color=61DAFB&center=true&vCenter=true&width=650&height=70&lines=NexusCart;Advanced+E-Commerce+Platform" alt="Typing Animation" />
 
   <p><b>An Industrial-Grade, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
 

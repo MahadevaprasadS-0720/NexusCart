@@ -1,0 +1,22 @@
+{
+  "name": "shopping-cart-firebase",
+  "version": "1.0.0",
+  "description": "Full-Stack Amazon & Flipkart style E-Commerce Application powered by Google Firebase Backend",
+  "scripts": {
+    "start": "cd frontend && npm run dev",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build"
+  },
+  "keywords": [
+    "ecommerce",
+    "amazon",
+    "flipkart",
+    "react",
+    "firebase"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^12.17.1"
+  }
+}

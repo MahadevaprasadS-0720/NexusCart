@@ -1,6 +1,10 @@
 <div align="center">
 
-  # 🛒 NexusCart
+  <p align="center">
+    <a href="https://github.com/MahadevaprasadS-0720/NexusCart">
+      <img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=900&size=40&pause=1000&color=2563EB&center=true&vCenter=true&width=650&height=80&lines=NEXUS-CART;E-COMMERCE+ECOSYSTEM" alt="Animated Title" />
+    </a>
+  </p>
 
   <p><b>An Industrial-Grade, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
 
@@ -51,4 +55,3 @@ To run this industrial-grade project on your local machine, execute the followin
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/MahadevaprasadS-0720/NexusCart.git](https://github.com/MahadevaprasadS-0720/NexusCart.git)
-   

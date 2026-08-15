@@ -24,8 +24,11 @@ export const formatAuthError = (error) => {
   if (code.includes('weak-password')) {
     return 'Password is too weak. Please use at least 6 characters.';
   }
+  if (code.includes('popup-blocked')) {
+    return 'Google sign-in popup was blocked by your browser. Please allow popups or sign in with email.';
+  }
   if (code.includes('popup-closed-by-user')) {
-    return 'Google sign-in was cancelled.';
+    return 'Google sign-in popup was closed before completing.';
   }
   return 'Authentication failed. Please verify your details.';
 };

@@ -12,20 +12,23 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 
-// Helper to format clean, user-friendly auth errors
+// Helper to format clean, user-friendly auth errors for mobile & desktop
 const formatAuthError = (error) => {
   const code = error?.code || error?.message || '';
   if (code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) {
-    return 'Invalid email address or password. Please check your credentials.';
+    return 'Invalid email address or password. Please check your details.';
   }
   if (code.includes('email-already-in-use')) {
-    return 'An account with this email address already exists. Please sign in instead.';
+    return 'An account with this email address already exists. Please sign in.';
   }
   if (code.includes('weak-password')) {
     return 'Password is too weak. Please use at least 6 characters.';
   }
+  if (code.includes('popup-blocked')) {
+    return 'Google sign-in popup was blocked by your browser. Please allow popups or sign in with email.';
+  }
   if (code.includes('popup-closed-by-user')) {
-    return 'Google sign-in was cancelled.';
+    return 'Google sign-in popup was closed before completing.';
   }
   return 'Authentication failed. Please verify your details.';
 };
@@ -59,10 +62,12 @@ const Login = ({ initialMode = 'login' }) => {
     }
   }, [user, navigate]);
 
-  // Direct Sign In / Sign Up Form Submission Handler with Console Error Logging
+  // Mobile-Optimized Form Submit Handler
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const cleanEmail = email.trim();
 
     if (authMode === 'signup') {
       if (!name.trim()) {
@@ -80,15 +85,12 @@ const Login = ({ initialMode = 'login' }) => {
 
       setLoading(true);
       try {
-        console.log('[Firebase Auth] Creating user:', email);
-        // Direct Firebase Auth Registration
-        const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+        console.log('[Firebase Mobile Auth] Registration initiated for:', cleanEmail);
+        const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
         const newUser = userCredential.user;
 
-        // Update profile displayName
         await updateProfile(newUser, { displayName: name.trim() }).catch(() => {});
 
-        // Save user profile doc in Firestore silently
         setDoc(doc(db, 'users', newUser.uid), {
           uid: newUser.uid,
           id: newUser.uid,
@@ -103,17 +105,17 @@ const Login = ({ initialMode = 'login' }) => {
         navigate(isAdmin ? '/admin' : '/', { replace: true });
       } catch (err) {
         setLoading(false);
-        console.error('[Firebase Auth Error Code]:', err.code, '[Message]:', err.message, err);
+        console.error('[Firebase Mobile Auth Registration Error]:', err.code, err.message);
         setError(formatAuthError(err));
       }
       return;
     }
 
-    // Direct Firebase Auth Login
+    // Sign In Login
     setLoading(true);
     try {
-      console.log('[Firebase Auth] Signing in user:', email);
-      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      console.log('[Firebase Mobile Auth] Login initiated for:', cleanEmail);
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
       const loggedUser = userCredential.user;
 
       const isAdmin = isUserAdmin(loggedUser.email);
@@ -121,18 +123,20 @@ const Login = ({ initialMode = 'login' }) => {
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (err) {
       setLoading(false);
-      console.error('[Firebase Auth Error Code]:', err.code, '[Message]:', err.message, err);
+      console.error('[Firebase Mobile Auth Login Error]:', err.code, err.message);
       setError(formatAuthError(err));
     }
   };
 
-  // Direct Google Social Auth Sign In Handler
+  // Mobile-Friendly Google Social Auth Sign In Handler
   const handleGoogleSignIn = async () => {
     setError('');
     setGoogleLoading(true);
     try {
-      console.log('[Firebase Auth] Google Sign-In popup opening...');
+      console.log('[Firebase Mobile Auth] Opening Google Popup...');
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       const userCredential = await signInWithPopup(auth, provider);
       const googleUser = userCredential.user;
 
@@ -150,75 +154,69 @@ const Login = ({ initialMode = 'login' }) => {
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (err) {
       setGoogleLoading(false);
-      console.error('[Firebase Auth Error Code]:', err.code, '[Message]:', err.message, err);
+      console.error('[Firebase Mobile Auth Google Error]:', err.code, err.message);
       setError(formatAuthError(err));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center font-['Inter']">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 py-6 sm:py-12 px-3 sm:px-6 lg:px-8 flex items-center justify-center font-['Inter']">
       
-      {/* Centered Glass Container */}
-      <div className="w-full max-w-5xl bg-white/90 backdrop-blur-2xl rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[620px]">
+      {/* Responsive Container */}
+      <div className="w-full max-w-5xl bg-white/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[500px] sm:min-h-[620px]">
         
-        {/* Left Hero Panel (Desktop) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden">
+        {/* Left Hero Panel */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 p-6 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden">
           
-          {/* Subtle Grid Decor */}
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
 
-          <div className="relative z-10 space-y-6">
+          <div className="relative z-10 space-y-4 sm:space-y-6">
             <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400 flex items-center justify-center shadow-lg shadow-amber-400/20 group-hover:scale-105 transition-transform">
-                <ShoppingBag className="w-6 h-6 text-slate-950" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-400 flex items-center justify-center shadow-lg shadow-amber-400/20 group-hover:scale-105 transition-transform">
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
               </div>
-              <div className="font-extrabold text-2xl font-['Outfit'] tracking-tight">
+              <div className="font-extrabold text-xl sm:text-2xl font-['Outfit'] tracking-tight">
                 NexusCart <span className="text-amber-400">Prime</span>
               </div>
             </Link>
 
-            <div className="space-y-2 pt-4">
-              <span className="px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-extrabold tracking-wider uppercase inline-flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Enterprise Edition
+            <div className="space-y-2 pt-2 sm:pt-4">
+              <span className="px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[10px] sm:text-xs font-extrabold tracking-wider uppercase inline-flex items-center gap-1">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" /> Enterprise Edition
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight font-['Outfit'] leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-['Outfit'] leading-tight">
                 Welcome to Your Ultimate Shopping Destination
               </h2>
-              <p className="text-sm text-slate-300 font-medium leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed hidden sm:block">
                 Sign in to access 10,000+ lightning deals, fast express shipping, and seamless order tracking.
               </p>
             </div>
           </div>
 
-          {/* Value Props Bullet Points */}
-          <div className="relative z-10 space-y-3 pt-8 border-t border-slate-800 text-xs text-slate-300 font-medium">
-            <div className="flex items-center gap-2.5">
+          <div className="relative z-10 space-y-2.5 pt-4 sm:pt-8 border-t border-slate-800 text-[11px] sm:text-xs text-slate-300 font-medium">
+            <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>100% Safe Payments with Firebase Authorization</span>
+              <span>100% Safe Payments & Auth</span>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Instant Order Confirmation & Tracking</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>24x7 Dedicated Customer Support</span>
+              <span>Instant Order Tracking</span>
             </div>
           </div>
 
         </div>
 
         {/* Right Form Panel */}
-        <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-white">
+        <div className="lg:col-span-7 p-6 sm:p-12 flex flex-col justify-center bg-white">
           
           {/* Tab Switcher */}
-          <div className="flex bg-slate-100/80 p-1.5 rounded-2xl mb-8 border border-slate-200/80 max-w-xs mx-auto w-full">
+          <div className="flex bg-slate-100 p-1 rounded-2xl mb-6 border border-slate-200/80 max-w-xs mx-auto w-full">
             <button
               type="button"
               onClick={() => { setAuthMode('login'); setError(''); }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation ${
                 authMode === 'login'
-                  ? 'bg-white text-slate-900 shadow-md shadow-slate-950/5'
+                  ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -228,9 +226,9 @@ const Login = ({ initialMode = 'login' }) => {
             <button
               type="button"
               onClick={() => { setAuthMode('signup'); setError(''); }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation ${
                 authMode === 'signup'
-                  ? 'bg-white text-slate-900 shadow-md shadow-slate-950/5'
+                  ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -238,8 +236,8 @@ const Login = ({ initialMode = 'login' }) => {
             </button>
           </div>
 
-          <div className="mb-6 text-center">
-            <h3 className="text-2xl font-extrabold text-slate-900 font-['Outfit']">
+          <div className="mb-5 text-center">
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 font-['Outfit']">
               {authMode === 'signup' ? 'Create Your Account' : 'Welcome Back'}
             </h3>
             <p className="text-xs font-medium text-slate-500 mt-1">
@@ -250,13 +248,13 @@ const Login = ({ initialMode = 'login' }) => {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-xs font-bold mb-6 text-center">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-3.5 py-2.5 rounded-xl text-xs font-bold mb-5 text-center leading-snug">
               {error}
             </div>
           )}
 
-          {/* Main Auth Form */}
-          <form onSubmit={handleAuthSubmit} className="space-y-4">
+          {/* Main Mobile Auth Form */}
+          <form onSubmit={handleAuthSubmit} className="space-y-3.5">
             
             {authMode === 'signup' && (
               <div>
@@ -281,6 +279,10 @@ const Login = ({ initialMode = 'login' }) => {
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -296,6 +298,8 @@ const Login = ({ initialMode = 'login' }) => {
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   required
                   minLength={6}
                   value={password}
@@ -313,6 +317,8 @@ const Login = ({ initialMode = 'login' }) => {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="password"
+                    autoCapitalize="none"
+                    autoCorrect="off"
                     required
                     minLength={6}
                     value={confirmPassword}
@@ -327,11 +333,11 @@ const Login = ({ initialMode = 'login' }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full font-extrabold text-sm py-3.5 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-98 cursor-pointer bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950"
+              className="w-full font-extrabold text-sm min-h-[48px] py-3.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-95 cursor-pointer touch-manipulation bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Authenticating with Firebase...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Authenticating...
                 </>
               ) : (
                 <>
@@ -342,24 +348,24 @@ const Login = ({ initialMode = 'login' }) => {
             </button>
           </form>
 
-          {/* Google Social Authentication */}
-          <div className="mt-6 space-y-4">
+          {/* Google Social Auth */}
+          <div className="mt-5 space-y-3">
             <div className="relative flex items-center justify-center">
               <div className="border-t border-slate-200 w-full" />
-              <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider absolute">OR</span>
+              <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider absolute">OR</span>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleSignIn}
               disabled={googleLoading}
-              className="w-full bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs py-3 px-4 rounded-xl border border-slate-200 flex items-center justify-center gap-3 transition-all shadow-sm hover:shadow cursor-pointer"
+              className="w-full bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs min-h-[46px] py-3 px-4 rounded-xl border border-slate-200 flex items-center justify-center gap-3 transition-all shadow-sm hover:shadow cursor-pointer touch-manipulation active:scale-95"
             >
               {googleLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
               ) : (
                 <>
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>

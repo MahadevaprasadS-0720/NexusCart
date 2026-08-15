@@ -5,11 +5,21 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Mobile Viewport & Touch Enhancements */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .main-content {
   flex: 1;
   padding-bottom: 3rem;
+  width: 100%;
 }
 
 /* Amazon / Flipkart Dual Header */

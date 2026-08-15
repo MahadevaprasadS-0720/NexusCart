@@ -1,11 +1,11 @@
 <div align="center">
 
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=110&section=header&text=NexusCart&fontSize=36&fontColor=FFCA28&fontAlignY=50&animation=fadeIn" width="100%" />
+  # 🛒 NexusCart — Advanced E-Commerce Platform
 
-  <p><b>An Advanced, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
+  <p><b>An Industrial-Grade, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
 
   <p>
-    <img src="https://img.shields.io/badge/REACT.JS-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/REACT.JS-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
     <img src="https://img.shields.io/badge/VITE-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
     <img src="https://img.shields.io/badge/FIREBASE-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
     <img src="https://img.shields.io/badge/TAILWIND_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />

@@ -7,14 +7,13 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   setPersistence,
-  browserSessionPersistence,
   browserLocalPersistence
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
 // Helper to format clean user-friendly authentication error messages
-const formatAuthError = (error) => {
+export const formatAuthError = (error) => {
   const code = error?.code || error?.message || '';
   if (code.includes('user-not-found') || code.includes('invalid-credential') || code.includes('wrong-password')) {
     return 'Invalid email address or password. Please check your credentials.';
@@ -31,38 +30,10 @@ const formatAuthError = (error) => {
   return 'Authentication failed. Please verify your details.';
 };
 
-// Configure strict session persistence (isolated per browser tab/session)
+// Configure safe standard local persistence for reliable browser sessions
 try {
-  setPersistence(auth, browserSessionPersistence).catch(() => {});
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
 } catch (e) {}
-
-// Tab Session Keys
-export const TAB_SESSION_MARKER = 'tab_authenticated_session';
-export const TAB_SESSION_ID = 'tab_session_id';
-
-// Check if current tab holds a verified active session
-export const isTabSessionAuthenticated = () => {
-  if (typeof window === 'undefined') return false;
-  return sessionStorage.getItem(TAB_SESSION_MARKER) === 'true';
-};
-
-// Mark tab session as authenticated
-export const setTabSessionAuthenticated = () => {
-  if (typeof window === 'undefined') return;
-  sessionStorage.setItem(TAB_SESSION_MARKER, 'true');
-};
-
-// Helper to purge tab & window storage on logout or stale tab init
-export const purgeTabSession = async () => {
-  try {
-    await signOut(auth);
-  } catch (e) {}
-  if (typeof window !== 'undefined') {
-    sessionStorage.clear();
-    localStorage.clear();
-  }
-};
-
 
 // Register User or Admin in Firebase Auth + Firestore
 export const signUpUser = async (name, email, password, role = 'user') => {
@@ -70,6 +41,7 @@ export const signUpUser = async (name, email, password, role = 'user') => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
+    // Update Firebase Auth profile name
     await updateProfile(user, { displayName: name });
 
     const userProfile = {
@@ -81,13 +53,19 @@ export const signUpUser = async (name, email, password, role = 'user') => {
       createdAt: new Date().toISOString()
     };
 
-    setTabSessionAuthenticated();
-    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+    // Ensure Firestore user document is created immediately to satisfy Firestore Security Rules
+    try {
+      await setDoc(doc(db, 'users', user.uid), userProfile, { merge: true });
+    } catch (dbErr) {
+      console.warn('Firestore user doc creation warning:', dbErr);
+    }
+
+    const token = await user.getIdToken();
 
     return {
       success: true,
       user: userProfile,
-      token: await user.getIdToken()
+      token
     };
   } catch (error) {
     return {
@@ -97,13 +75,11 @@ export const signUpUser = async (name, email, password, role = 'user') => {
   }
 };
 
-// Ultra-fast Sign In User
+// Sign In User
 export const signInUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    setTabSessionAuthenticated();
 
     const profile = {
       uid: user.uid,
@@ -113,20 +89,26 @@ export const signInUser = async (email, password) => {
       role: 'user'
     };
 
-    getDoc(doc(db, 'users', user.uid))
-      .then((userSnap) => {
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          profile.name = data.name || profile.name;
-          profile.role = data.role || profile.role;
-        }
-      })
-      .catch(() => {});
+    // Fetch user profile doc from Firestore if present, or create doc if missing
+    try {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        profile.name = data.name || profile.name;
+        profile.role = data.role || profile.role;
+      } else {
+        await setDoc(doc(db, 'users', user.uid), profile, { merge: true });
+      }
+    } catch (e) {
+      console.warn('Firestore doc check warning:', e);
+    }
+
+    const token = await user.getIdToken();
 
     return {
       success: true,
       user: profile,
-      token: await user.getIdToken()
+      token
     };
   } catch (error) {
     return {
@@ -143,22 +125,34 @@ export const signInWithGoogle = async () => {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
 
-    setTabSessionAuthenticated();
-
     const userProfile = {
       uid: user.uid,
       id: user.uid,
       name: user.displayName || 'NexusCart Member',
       email: user.email ? user.email.toLowerCase() : '',
-      role: 'user'
+      role: 'user',
+      createdAt: new Date().toISOString()
     };
 
-    setDoc(doc(db, 'users', user.uid), userProfile, { merge: true }).catch(() => {});
+    try {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        userProfile.name = data.name || userProfile.name;
+        userProfile.role = data.role || userProfile.role;
+      } else {
+        await setDoc(doc(db, 'users', user.uid), userProfile, { merge: true });
+      }
+    } catch (e) {
+      console.warn('Google Auth Firestore doc creation warning:', e);
+    }
+
+    const token = await user.getIdToken();
 
     return {
       success: true,
       user: userProfile,
-      token: await user.getIdToken()
+      token
     };
   } catch (error) {
     return {
@@ -168,33 +162,29 @@ export const signInWithGoogle = async () => {
   }
 };
 
-// Sign In Admin
+// Sign In Admin Helper
 export const signInAdmin = async (email, password) => {
   return await signInUser(email, password);
 };
 
-// Sign Out
+// Sign Out User
 export const signOutUser = async () => {
   try {
-    await purgeTabSession();
+    await signOut(auth);
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+      localStorage.clear();
+    }
     return { success: true };
   } catch (error) {
     return { success: false, message: error.message };
   }
 };
 
-// Auth State Observer with One-Tab One-Login Enforcement
+// Auth State Observer
 export const onAuthChange = (callback) => {
-  return onAuthStateChanged(auth, (user) => {
+  return onAuthStateChanged(auth, async (user) => {
     if (user) {
-      // Verify whether current tab session was authenticated
-      if (!isTabSessionAuthenticated()) {
-        // Force purge unauthenticated cross-tab session
-        purgeTabSession();
-        callback(null);
-        return;
-      }
-
       const profile = {
         uid: user.uid,
         id: user.uid,
@@ -203,22 +193,16 @@ export const onAuthChange = (callback) => {
         role: 'user'
       };
 
-      callback(profile);
+      try {
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          profile.name = data.name || profile.name;
+          profile.role = data.role || profile.role;
+        }
+      } catch (e) {}
 
-      getDoc(doc(db, 'users', user.uid))
-        .then((userSnap) => {
-          if (userSnap.exists()) {
-            const data = userSnap.data();
-            if (data.name || data.role) {
-              callback({
-                ...profile,
-                name: data.name || profile.name,
-                role: data.role || profile.role
-              });
-            }
-          }
-        })
-        .catch(() => {});
+      callback(profile);
     } else {
       if (typeof window !== 'undefined') {
         sessionStorage.clear();
@@ -228,4 +212,3 @@ export const onAuthChange = (callback) => {
     }
   });
 };
-

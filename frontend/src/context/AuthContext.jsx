@@ -1,23 +1,18 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   signUpUser,
   signInUser,
   signInAdmin,
   signOutUser,
   signInWithGoogle,
-  onAuthChange,
-  isTabSessionAuthenticated,
-  setTabSessionAuthenticated,
-  purgeTabSession,
-  TAB_SESSION_MARKER,
-  TAB_SESSION_ID
+  onAuthChange
 } from '../services/firebaseAuth';
 import { seedInitialDataIfEmpty } from '../services/firebaseDb';
 
 // Dedicated Admin Email Constant
 export const ADMIN_EMAIL = "smahi.072006@gmail.com";
 
-// Helper function to verify if a user email matches the authorized Admin email
+// Helper function to verify if a user email matches authorized Admin credentials
 export const isUserAdmin = (userEmail) => {
   if (!userEmail) return false;
   const emailToTest = userEmail.toLowerCase().trim();
@@ -29,27 +24,26 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    // Only load initial user if this specific tab has been authenticated
-    if (typeof window !== 'undefined' && isTabSessionAuthenticated()) {
-      const saved = sessionStorage.getItem('user');
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('user') || localStorage.getItem('user');
       return saved ? JSON.parse(saved) : null;
     }
     return null;
   });
 
   const [token, setToken] = useState(() => {
-    if (typeof window !== 'undefined' && isTabSessionAuthenticated()) {
-      return sessionStorage.getItem('token') || '';
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('token') || localStorage.getItem('token') || '';
     }
     return '';
   });
 
   const [role, setRole] = useState(() => {
-    if (typeof window !== 'undefined' && isTabSessionAuthenticated()) {
-      const savedUser = sessionStorage.getItem('user');
+    if (typeof window !== 'undefined') {
+      const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
-        return isUserAdmin(parsed.email) ? 'admin' : 'user';
+        return isUserAdmin(parsed.email) ? 'admin' : (parsed.role || 'user');
       }
     }
     return 'user';
@@ -57,104 +51,39 @@ export const AuthProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(true);
 
-  // Force Tab Session Verification on Init
-  const verifyTabIsolation = useCallback(async () => {
-    if (typeof window === 'undefined') return;
-
-    // Check tab session identifier
-    let tabId = sessionStorage.getItem(TAB_SESSION_ID);
-    if (!tabId) {
-      // New browser tab initialization detected -> enforce forced logout for isolated tab
-      tabId = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      sessionStorage.setItem(TAB_SESSION_ID, tabId);
-
-      // Explicitly purge any lingering cross-tab Firebase persistence
-      await purgeTabSession();
-      setUser(null);
-      setToken('');
-      setRole('user');
-      setLoading(false);
-      return false;
-    }
-
-    if (!isTabSessionAuthenticated()) {
-      await purgeTabSession();
-      setUser(null);
-      setToken('');
-      setRole('user');
-      setLoading(false);
-      return false;
-    }
-
-    return true;
-  }, []);
-
-  // Subscribe to Firebase Authentication State Changes & Browser Tab Lifecycles
+  // Subscribe to Firebase Authentication State Changes
   useEffect(() => {
-    seedInitialDataIfEmpty();
-
-    // Verify Tab Session on mount
-    verifyTabIsolation();
-
-    // Browser Tab Lifecycle Listeners for strict One-Tab One-Login policy
-    const handleTabShow = () => {
-      if (!isTabSessionAuthenticated()) {
-        purgeTabSession();
-        setUser(null);
-        setToken('');
-        setRole('user');
-      }
-    };
-
-    const handleStorageChange = (e) => {
-      // If another tab triggers logout or token change, force verification
-      if (e.key === TAB_SESSION_MARKER && e.newValue === null) {
-        purgeTabSession();
-        setUser(null);
-        setToken('');
-        setRole('user');
-      }
-    };
-
-    window.addEventListener('pageshow', handleTabShow);
-    window.addEventListener('visibilitychange', handleTabShow);
-    window.addEventListener('storage', handleStorageChange);
+    seedInitialDataIfEmpty().catch(() => {});
 
     const unsubscribe = onAuthChange((firebaseUser) => {
-      if (firebaseUser && firebaseUser.email && isTabSessionAuthenticated()) {
-        const isAdmin = isUserAdmin(firebaseUser.email);
+      if (firebaseUser && firebaseUser.email) {
+        const isAdmin = isUserAdmin(firebaseUser.email) || firebaseUser.role === 'admin';
         const computedRole = isAdmin ? 'admin' : 'user';
         const userObj = { ...firebaseUser, role: computedRole };
 
         setUser(userObj);
         setRole(computedRole);
         setToken(firebaseUser.uid);
-        sessionStorage.setItem('user', JSON.stringify(userObj));
-        sessionStorage.setItem('role', computedRole);
-        sessionStorage.setItem('token', firebaseUser.uid);
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('user', JSON.stringify(userObj));
+          sessionStorage.setItem('role', computedRole);
+          sessionStorage.setItem('token', firebaseUser.uid);
+        }
       } else {
-        // Complete purge on tab session expiry, new tab init, or logout
         setUser(null);
         setRole('user');
         setToken('');
         if (typeof window !== 'undefined') {
-          sessionStorage.removeItem('user');
-          sessionStorage.removeItem('role');
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem(TAB_SESSION_MARKER);
+          sessionStorage.clear();
+          localStorage.clear();
         }
       }
       setLoading(false);
     });
 
-    return () => {
-      window.removeEventListener('pageshow', handleTabShow);
-      window.removeEventListener('visibilitychange', handleTabShow);
-      window.removeEventListener('storage', handleStorageChange);
-      unsubscribe();
-    };
-  }, [verifyTabIsolation]);
-
+    return () => unsubscribe();
+  }, []);
 
   const login = async (email, password, isAdminLogin = false) => {
     const res = isAdminLogin
@@ -162,16 +91,19 @@ export const AuthProvider = ({ children }) => {
       : await signInUser(email, password);
 
     if (res.success) {
-      const isAdmin = isUserAdmin(res.user.email);
+      const isAdmin = isUserAdmin(res.user.email) || res.user.role === 'admin';
       const computedRole = isAdmin ? 'admin' : 'user';
       const userObj = { ...res.user, role: computedRole };
 
       setUser(userObj);
       setRole(computedRole);
       setToken(res.token);
-      sessionStorage.setItem('user', JSON.stringify(userObj));
-      sessionStorage.setItem('role', computedRole);
-      sessionStorage.setItem('token', res.token);
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        sessionStorage.setItem('role', computedRole);
+        sessionStorage.setItem('token', res.token);
+      }
       return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
@@ -180,16 +112,19 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async () => {
     const res = await signInWithGoogle();
     if (res.success) {
-      const isAdmin = isUserAdmin(res.user.email);
+      const isAdmin = isUserAdmin(res.user.email) || res.user.role === 'admin';
       const computedRole = isAdmin ? 'admin' : 'user';
       const userObj = { ...res.user, role: computedRole };
 
       setUser(userObj);
       setRole(computedRole);
       setToken(res.token);
-      sessionStorage.setItem('user', JSON.stringify(userObj));
-      sessionStorage.setItem('role', computedRole);
-      sessionStorage.setItem('token', res.token);
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        sessionStorage.setItem('role', computedRole);
+        sessionStorage.setItem('token', res.token);
+      }
       return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
@@ -198,16 +133,19 @@ export const AuthProvider = ({ children }) => {
   const signup = async (name, email, password, requestedRole = 'user') => {
     const res = await signUpUser(name, email, password, requestedRole);
     if (res.success) {
-      const isAdmin = isUserAdmin(res.user.email);
+      const isAdmin = isUserAdmin(res.user.email) || res.user.role === 'admin';
       const computedRole = isAdmin ? 'admin' : 'user';
       const userObj = { ...res.user, role: computedRole };
 
       setUser(userObj);
       setRole(computedRole);
       setToken(res.token);
-      sessionStorage.setItem('user', JSON.stringify(userObj));
-      sessionStorage.setItem('role', computedRole);
-      sessionStorage.setItem('token', res.token);
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        sessionStorage.setItem('role', computedRole);
+        sessionStorage.setItem('token', res.token);
+      }
       return { success: true, user: userObj };
     }
     return { success: false, message: res.message };
@@ -218,11 +156,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken('');
     setRole('user');
-    sessionStorage.clear();
-    localStorage.clear();
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+      localStorage.clear();
+    }
   };
 
-  const isAdmin = isUserAdmin(user?.email);
+  const isAdmin = isUserAdmin(user?.email) || role === 'admin';
 
   return (
     <AuthContext.Provider

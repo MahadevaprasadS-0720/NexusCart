@@ -3,11 +3,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ShoppingBag, Lock, Mail, ShieldCheck, UserCheck, User, Sparkles, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 
-const Login = () => {
+const Login = ({ initialMode = 'login' }) => {
   const [searchParams] = useSearchParams();
   const isAdminInitial = searchParams.get('admin') === 'true';
 
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+  const [authMode, setAuthMode] = useState(initialMode); // 'login' | 'signup'
 
   // Form state
   const [email, setEmail] = useState('');
@@ -24,14 +24,11 @@ const Login = () => {
   const { user, login, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  // Instant Auto-Redirect when User is Logged In
+  // Auto-Redirect if user is already authenticated
   useEffect(() => {
     if (user && user.email) {
-      if (isUserAdmin(user.email)) {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
+      const isAdmin = isUserAdmin(user.email) || user.role === 'admin';
+      navigate(isAdmin ? '/admin' : '/', { replace: true });
     }
   }, [user, navigate]);
 
@@ -40,6 +37,10 @@ const Login = () => {
     setError('');
 
     if (authMode === 'signup') {
+      if (!name.trim()) {
+        setError('Please enter your full name.');
+        return;
+      }
       if (password.length < 6) {
         setError('Password must be at least 6 characters long.');
         return;
@@ -50,29 +51,29 @@ const Login = () => {
       }
 
       setLoading(true);
-      const res = await signup(name, email, password, 'user');
+      const res = await signup(name.trim(), email.trim(), password, 'user');
       setLoading(false);
 
       if (res.success) {
-        const isAdmin = isUserAdmin(res.user?.email || email);
+        const isAdmin = isUserAdmin(res.user?.email || email) || res.user?.role === 'admin';
         navigate(isAdmin ? '/admin' : '/', { replace: true });
       } else {
-        setError(res.message || 'Registration failed.');
+        setError(res.message || 'Registration failed. Please try again.');
       }
       return;
     }
 
     // Sign In Login
     setLoading(true);
-    const res = await login(email, password, false);
+    const res = await login(email.trim(), password, false);
     setLoading(false);
 
     if (res.success) {
       const userEmail = res.user?.email || email;
-      const isAdmin = isUserAdmin(userEmail);
+      const isAdmin = isUserAdmin(userEmail) || res.user?.role === 'admin';
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } else {
-      setError(res.message || 'Authentication failed. Please check credentials.');
+      setError(res.message || 'Authentication failed. Please check your email and password.');
     }
   };
 
@@ -83,7 +84,7 @@ const Login = () => {
     setGoogleLoading(false);
 
     if (res.success) {
-      const isAdmin = isUserAdmin(res.user?.email);
+      const isAdmin = isUserAdmin(res.user?.email) || res.user?.role === 'admin';
       navigate(isAdmin ? '/admin' : '/', { replace: true });
     } else {
       setError(res.message || 'Google authentication failed.');
@@ -146,7 +147,7 @@ const Login = () => {
         {/* Right Form Panel */}
         <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-white">
           
-          {/* Animated Tabbed Switcher (Sign In vs Register only) */}
+          {/* Tab Switcher */}
           <div className="flex bg-slate-100/80 p-1.5 rounded-2xl mb-8 border border-slate-200/80 max-w-xs mx-auto w-full">
             <button
               type="button"

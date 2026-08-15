@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
+// Web App Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCB34v7xlgFczimq8XYu1ok1LGcEGdDUmg",
   authDomain: "nexuscart-fc3a2.firebaseapp.com",
@@ -15,11 +15,11 @@ const firebaseConfig = {
   measurementId: "G-32CF298WFD"
 };
 
-// Initialize Firebase
+// Initialize Firebase App
 const app = initializeApp(firebaseConfig);
-const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
-// Initialize Firebase Services
+// Initialize Services
+const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);

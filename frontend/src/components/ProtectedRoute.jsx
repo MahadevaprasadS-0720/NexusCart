@@ -1,81 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
-import { isTabSessionAuthenticated } from '../services/firebaseAuth';
 import { auth } from '../firebaseConfig';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user: contextUser, loading: contextLoading } = useAuth();
-  const [authState, setAuthState] = useState({
-    isChecking: true,
-    isAuthenticated: false,
-    isAdminAuthorized: false
-  });
+  const { user, isAdmin, loading } = useAuth();
 
-  useEffect(() => {
-    // Listen directly to live Firebase Auth state with token validation
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Must have active Firebase user AND valid tab-isolated session
-      if (!firebaseUser || !isTabSessionAuthenticated()) {
-        setAuthState({
-          isChecking: false,
-          isAuthenticated: false,
-          isAdminAuthorized: false
-        });
-        return;
-      }
-
-      try {
-        // Validate fresh JWT token from Firebase auth server
-        const token = await firebaseUser.getIdToken();
-        if (!token) {
-          setAuthState({
-            isChecking: false,
-            isAuthenticated: false,
-            isAdminAuthorized: false
-          });
-          return;
-        }
-
-        const isAdmin = isUserAdmin(firebaseUser.email);
-        setAuthState({
-          isChecking: false,
-          isAuthenticated: true,
-          isAdminAuthorized: isAdmin
-        });
-      } catch (err) {
-        setAuthState({
-          isChecking: false,
-          isAuthenticated: false,
-          isAdminAuthorized: false
-        });
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (contextLoading || authState.isChecking) {
+  if (loading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="text-slate-500 font-bold text-sm">Verifying session token & tab credentials...</div>
+      <div className="min-h-[50vh] flex items-center justify-center font-['Inter']">
+        <div className="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-lg border border-slate-200">
+          <div className="w-5 h-5 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-slate-700 font-extrabold text-sm">Verifying Firebase session...</span>
+        </div>
       </div>
     );
   }
 
-  // Redirect to login if user is not authenticated or tab session is invalid
-  if (!authState.isAuthenticated || !contextUser) {
+  const currentAuthUser = auth.currentUser || user;
+
+  // If no user is logged in, redirect to login page
+  if (!currentAuthUser || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Admin Route Guard
-  if (adminOnly && !authState.isAdminAuthorized) {
-    return <Navigate to="/" replace />;
+  // Admin Route Access Guard
+  if (adminOnly) {
+    const userIsAdmin = isAdmin || isUserAdmin(currentAuthUser.email) || user?.role === 'admin';
+    if (!userIsAdmin) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;
 };
 
 export default ProtectedRoute;
-

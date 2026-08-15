@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=38&pause=1000&color=FFCA28&center=true&vCenter=true&width=600&height=80&lines=NexusCart;The+Ultimate+E-Commerce+Platform" alt="Typing Animation" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=110&section=header&text=NexusCart&fontSize=36&fontColor=FFCA28&fontAlignY=50&animation=fadeIn" width="100%" />
 
   <p><b>An Advanced, High-Performance, and Feature-Rich Full-Stack Retail Web Application</b></p>
 

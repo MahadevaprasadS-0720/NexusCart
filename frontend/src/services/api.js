@@ -31,6 +31,10 @@ import {
   fetchLiveCloverProductById,
   processCloverPayment
 } from './cloverService';
+import {
+  fetchLiveMarketStoreProducts,
+  fetchLiveMarketProductById
+} from './liveMarketService';
 import { CLOVER_CONFIG } from '../config/cloverConfig';
 
 // Unified API Service Layer powered by Google Firebase (v9+ Modular SDK) and Clover eCommerce API
@@ -65,12 +69,59 @@ export const api = {
     return { success: true };
   },
 
-  // Product Catalog Services
+  // Product Catalog Services (Powered by Live Market API, Firestore & Clover)
   async getProducts(params = {}) {
-    return await getProducts(params);
+    try {
+      // 1. Fetch from Firestore / base store
+      const baseRes = await getProducts(params);
+      let allProducts = (baseRes.success && baseRes.products && baseRes.products.length > 0)
+        ? [...baseRes.products]
+        : [];
+
+      // 2. Fetch from Live Marketplace API Feed
+      try {
+        const liveMarketRes = await fetchLiveMarketStoreProducts();
+        if (liveMarketRes.success && liveMarketRes.products && liveMarketRes.products.length > 0) {
+          const existingIds = new Set(allProducts.map(p => p.id || p._id));
+          const newLiveProducts = liveMarketRes.products.filter(p => !existingIds.has(p.id));
+          allProducts = [...allProducts, ...newLiveProducts];
+        }
+      } catch (e) {}
+
+      // Apply category/search filtering if requested
+      if (params.category && params.category !== 'All') {
+        allProducts = allProducts.filter(p => p.category?.toLowerCase() === params.category.toLowerCase());
+      }
+      if (params.search) {
+        const q = params.search.toLowerCase();
+        allProducts = allProducts.filter(p =>
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.title && p.title.toLowerCase().includes(q)) ||
+          (p.category && p.category.toLowerCase().includes(q)) ||
+          (p.brand && p.brand.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q))
+        );
+      }
+
+      return {
+        success: true,
+        count: allProducts.length,
+        products: allProducts
+      };
+    } catch (err) {
+      return await getProducts(params);
+    }
   },
 
   async getProductById(id) {
+    if (String(id).startsWith('mkt_')) {
+      const liveRes = await fetchLiveMarketProductById(id);
+      if (liveRes.success && liveRes.product) return liveRes;
+    }
+    if (String(id).startsWith('clover_')) {
+      const cloverRes = await fetchLiveCloverProductById(id);
+      if (cloverRes.success && cloverRes.product) return cloverRes;
+    }
     return await getProductById(id);
   },
 

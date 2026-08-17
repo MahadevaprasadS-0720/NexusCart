@@ -34,7 +34,7 @@ echo.
 
 echo [STEP 3/3] Committing and Pushing to GitHub...
 git add .
-git commit -m "feat: integrate Clover eCommerce Sandbox API tokens, live product details, and diagnostics"
+git commit -m "feat: live e-commerce marketplace catalog 100+ items, Clover Sandbox API tokens, and custom API connector"
 git push origin main
 if %ERRORLEVEL% NEQ 0 (
     echo Pushing to origin master instead...

@@ -23,6 +23,7 @@ import WishlistPage from './pages/WishlistPage';
 import UserProfile from './pages/UserProfile';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import CloverLivePage from './pages/CloverLivePage';
 
 // Admin Dashboard Pages
 import AdminLayout from './admin/AdminLayout';
@@ -61,6 +62,9 @@ function App() {
               <Route path="signup" element={<Signup />} />
               <Route path="register" element={<Signup />} />
               <Route path="wishlist" element={<WishlistPage />} />
+              <Route path="clover" element={<CloverLivePage />} />
+              <Route path="clover-live" element={<CloverLivePage />} />
+              <Route path="live-products" element={<CloverLivePage />} />
 
               {/* Shopping Cart & Customer Profile */}
               <Route path="cart" element={<Cart />} />

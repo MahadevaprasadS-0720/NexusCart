@@ -5,7 +5,10 @@
   "scripts": {
     "start": "cd frontend && npm run dev",
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build"
+    "build": "cd frontend && npm run build",
+    "deploy": "npm run build && firebase deploy",
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage"
   },
   "keywords": [
     "ecommerce",

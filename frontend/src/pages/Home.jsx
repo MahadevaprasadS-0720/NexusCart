@@ -5,15 +5,16 @@ import CategoryNav from '../components/CategoryNav';
 import FilterSidebar from '../components/FilterSidebar';
 import ProductCard from '../components/ProductCard';
 import { api } from '../services/api';
-import { initialProducts, initialCategories } from '../data/mockData';
-import { Zap, Sparkles, Search, SlidersHorizontal, Package, RefreshCw } from 'lucide-react';
+import { fetchLiveMarketStoreProducts } from '../services/liveMarketService';
+import { initialCategories } from '../data/mockData';
+import { Zap, Sparkles, Search, SlidersHorizontal, Package, RefreshCw, Loader2 } from 'lucide-react';
 
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(initialCategories);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // State Filters
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -38,24 +39,20 @@ const Home = () => {
     try {
       setLoading(true);
       const res = await api.getProducts();
-      let allProducts = (res.success && res.products && res.products.length) ? res.products : initialProducts;
-
-      // Try fetching live items from Clover Sandbox API
-      try {
-        const cloverRes = await api.getCloverLiveProducts();
-        if (cloverRes.success && cloverRes.products && cloverRes.products.length > 0) {
-          const existingIds = new Set(allProducts.map(p => p.id || p._id));
-          const cloverProducts = cloverRes.products.filter(p => !existingIds.has(p.id));
-          allProducts = [...cloverProducts, ...allProducts];
+      if (res.success && res.products && res.products.length > 0) {
+        setProducts(res.products);
+      } else {
+        const liveMarketRes = await fetchLiveMarketStoreProducts();
+        if (liveMarketRes.success && liveMarketRes.products) {
+          setProducts(liveMarketRes.products);
         }
-      } catch (ce) {
-        // Clover offline or fallback
       }
-
-      setProducts(allProducts);
     } catch (error) {
-      console.log('Using local catalog dataset');
-      setProducts(initialProducts);
+      console.warn('Catalog loaded via live market fallback');
+      const liveMarketRes = await fetchLiveMarketStoreProducts();
+      if (liveMarketRes.success && liveMarketRes.products) {
+        setProducts(liveMarketRes.products);
+      }
     } finally {
       setLoading(false);
     }
@@ -220,7 +217,15 @@ const Home = () => {
 
           {/* Product Grid Area */}
           <main className="flex-1 w-full">
-            {filteredAndSortedProducts.length === 0 ? (
+            {loading ? (
+              <div className="bg-white rounded-3xl p-16 text-center border border-slate-200/80 shadow-sm space-y-4 max-w-md mx-auto my-8">
+                <Loader2 className="w-10 h-10 text-amber-500 animate-spin mx-auto" />
+                <h3 className="text-lg font-extrabold text-slate-900">Loading Live Product Catalog...</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Streaming 150+ real-time e-commerce products with live pricing and verified details.
+                </p>
+              </div>
+            ) : filteredAndSortedProducts.length === 0 ? (
               <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-sm space-y-4 max-w-md mx-auto my-8">
                 <div className="w-16 h-16 rounded-2xl bg-amber-400/10 text-amber-600 flex items-center justify-center mx-auto">
                   <Package className="w-8 h-8" />

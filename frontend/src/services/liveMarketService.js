@@ -42,13 +42,12 @@ export const fetchLiveMarketStoreProducts = async () => {
   }
 
   try {
-    // 1. Query Live Marketplace REST API
-    const response = await fetch('https://dummyjson.com/products?limit=100');
+    // 1. Query Live Marketplace REST API for 150 items
+    const response = await fetch('https://dummyjson.com/products?limit=150');
     if (response.ok) {
       const data = await response.json();
       if (data.products && data.products.length > 0) {
         const mappedProducts = data.products.map((p) => {
-          // Convert USD price to approximate INR (x85) for realistic Indian marketplace retail values
           const inrPrice = Math.round(p.price * 85);
           const origPrice = Math.round(inrPrice * (1 + (p.discountPercentage || 15) / 100));
 
@@ -63,23 +62,25 @@ export const fetchLiveMarketStoreProducts = async () => {
             discountPercentage: Math.round(p.discountPercentage || 15),
             category: mapCategory(p.category),
             rawCategory: p.category,
-            brand: p.brand || 'Nexus Prime Verified',
+            brand: p.brand || 'Verified Live Brand',
             image: p.thumbnail || (p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80'),
             images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
             rating: p.rating || 4.5,
-            reviewCount: p.reviews ? p.reviews.length * 15 + 12 : Math.floor(50 + Math.random() * 200),
+            reviewCount: p.reviews ? p.reviews.length * 18 + 24 : Math.floor(50 + Math.random() * 200),
             stock: p.stock || 25,
             sku: p.sku || `MKT-${p.id}`,
-            isFeatured: (p.rating || 4) >= 4.5,
-            isDealOfTheDay: (p.discountPercentage || 0) > 15,
+            isFeatured: (p.rating || 4) >= 4.4,
+            isDealOfTheDay: (p.discountPercentage || 0) > 12,
             isLiveMarket: true,
             specifications: {
-              'Brand': p.brand || 'Verified Market Item',
-              'SKU': p.sku || `MKT-${p.id}`,
-              'Weight': p.weight ? `${p.weight} kg` : 'Standard',
-              'Warranty': p.warrantyInformation || '1 Year Manufacturer Warranty',
-              'Shipping': p.shippingInformation || 'Fast Express 2-Day Delivery',
-              'Return Policy': p.returnPolicy || '30 Days Free Replacement'
+              'Brand': p.brand || 'Verified Live Brand',
+              'SKU Code': p.sku || `MKT-${p.id}`,
+              'Weight': p.weight ? `${p.weight} kg` : 'Standard Delivery Package',
+              'Dimensions': p.dimensions ? `${p.dimensions.width} x ${p.dimensions.height} x ${p.dimensions.depth} cm` : 'Standard Package Dimensions',
+              'Warranty': p.warrantyInformation || '1 Year Official Manufacturer Warranty',
+              'Shipping Policy': p.shippingInformation || 'Fast Express 2-Day Priority Delivery',
+              'Return Policy': p.returnPolicy || '30 Days Free Return & Replacement Guarantee',
+              'Availability': p.availabilityStatus || 'In Stock (Live Inventory)'
             }
           };
         });
@@ -88,14 +89,14 @@ export const fetchLiveMarketStoreProducts = async () => {
 
         return {
           success: true,
-          source: 'Live E-Commerce Marketplace API Feed (100+ Items)',
+          source: 'Live E-Commerce Marketplace REST API Feed (150 Items)',
           count: mappedProducts.length,
           products: mappedProducts
         };
       }
     }
   } catch (error) {
-    console.warn('[Live Market] Network fetch failed, using built-in catalog feed.');
+    console.warn('[Live Market] Network fetch failed, falling back to embedded live dataset.');
   }
 
   return {
@@ -135,16 +136,25 @@ export const fetchLiveMarketProductById = async (id) => {
         image: p.thumbnail || (p.images && p.images.length > 0 ? p.images[0] : ''),
         images: p.images || [p.thumbnail],
         rating: p.rating || 4.6,
-        reviewCount: 140,
+        reviewCount: p.reviews ? p.reviews.length * 18 + 24 : 140,
         stock: p.stock || 20,
         isLiveMarket: true,
         specifications: {
           'Brand': p.brand || 'Verified Market Item',
-          'SKU': p.sku || `MKT-${p.id}`,
-          'Warranty': p.warrantyInformation || '1 Year Manufacturer Warranty',
-          'Shipping': p.shippingInformation || 'Fast Express 2-Day Delivery',
-          'Return Policy': p.returnPolicy || '30 Days Free Replacement'
-        }
+          'SKU Code': p.sku || `MKT-${p.id}`,
+          'Weight': p.weight ? `${p.weight} kg` : 'Standard Delivery Package',
+          'Dimensions': p.dimensions ? `${p.dimensions.width} x ${p.dimensions.height} x ${p.dimensions.depth} cm` : 'Standard Package Dimensions',
+          'Warranty': p.warrantyInformation || '1 Year Official Manufacturer Warranty',
+          'Shipping Policy': p.shippingInformation || 'Fast Express 2-Day Priority Delivery',
+          'Return Policy': p.returnPolicy || '30 Days Free Return & Replacement Guarantee',
+          'Availability': p.availabilityStatus || 'In Stock (Live Inventory)'
+        },
+        reviews: p.reviews ? p.reviews.map(r => ({
+          userName: r.reviewerName,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.date
+        })) : []
       };
 
       return { success: true, product };

@@ -2,13 +2,13 @@
 title NexusCart - Build, Deploy to Firebase and Push to GitHub
 color 0A
 echo ====================================================================
-echo 🚀 NEXUSCART COMPLETE AUTOMATION: BUILD + FIREBASE DEPLOY + GITHUB PUSH
+echo 🚀 NEXUSCART COMPLETE AUTOMATION: BUILD + DEPLOY + GITHUB + OPEN SITE
 echo ====================================================================
 echo.
 
 cd /d "%~dp0"
 
-echo [STEP 1/3] Building Production Frontend (Vite)...
+echo [STEP 1/4] Building Production Frontend (Vite)...
 cd frontend
 call npm run build
 if %ERRORLEVEL% NEQ 0 (
@@ -21,31 +21,35 @@ cd ..
 echo ✅ Build completed successfully!
 echo.
 
-echo [STEP 2/3] Deploying to Firebase Hosting & Cloud Firestore...
+echo [STEP 2/4] Deploying to Firebase Hosting & Firestore...
 call npx firebase-tools deploy --project nexuscart-fc3a2
 if %ERRORLEVEL% NEQ 0 (
-    echo ⚠️ Trying global firebase CLI...
+    echo ⚠️ Standard deploy failed, trying global firebase CLI...
     call firebase deploy
 )
 echo ✅ Firebase deployment finished!
-echo 🌐 Live Site URL: https://nexuscart-fc3a2.web.app
-echo 🌐 Custom URL:   https://nexuscart-fc3a2.firebaseapp.com
 echo.
 
-echo [STEP 3/3] Committing and Pushing to GitHub...
+echo [STEP 3/4] Committing and Pushing to GitHub...
 git add .
-git commit -m "feat: live e-commerce marketplace catalog 100+ items, Clover Sandbox API tokens, and custom API connector"
+git commit -m "feat: complete live market store feed with 150+ items and Clover integration"
 git push origin main
 if %ERRORLEVEL% NEQ 0 (
     echo Pushing to origin master instead...
     git push origin master
 )
 echo ✅ GitHub push completed!
-echo 🔗 Repo URL: https://github.com/MahadevaprasadS-0720/NexusCart
 echo.
+
+echo [STEP 4/4] Opening Live Website in your default browser...
+timeout /t 2 /nobreak >nul
+start https://nexuscart-fc3a2.web.app
 
 echo ====================================================================
 echo 🌟 ALL TASKS COMPLETED SUCCESSFULLY!
+echo 🌐 Live Production URL: https://nexuscart-fc3a2.web.app
+echo 🍀 Live Clover Page:   https://nexuscart-fc3a2.web.app/clover
+echo 🔗 GitHub Repository:  https://github.com/MahadevaprasadS-0720/NexusCart
 echo ====================================================================
 echo.
 pause

@@ -36,21 +36,20 @@ const ProductDetails = () => {
       if (res.success && res.product) {
         setProduct(res.product);
         setSelectedImage(res.product.image || (res.product.images ? res.product.images[0] : ''));
-      } else {
-        const fallback = initialProducts.find(p => p.id === id || p._id === id);
-        if (fallback) {
-          setProduct(fallback);
-          setSelectedImage(fallback.image);
+        if (res.product.reviews && res.product.reviews.length > 0) {
+          setReviews(res.product.reviews);
         }
       }
 
-      // Fetch Reviews from Firestore
-      const revRes = await api.getProductReviews(id);
-      if (revRes.success && revRes.reviews) {
-        setReviews(revRes.reviews);
-      }
+      // Fetch additional Reviews from Firestore DB
+      try {
+        const revRes = await api.getProductReviews(id);
+        if (revRes.success && revRes.reviews && revRes.reviews.length > 0) {
+          setReviews(prev => [...revRes.reviews, ...prev]);
+        }
+      } catch (fe) {}
     } catch (err) {
-      console.log('Using local fallback data');
+      console.warn('Error loading product details:', err);
     } finally {
       setLoading(false);
     }

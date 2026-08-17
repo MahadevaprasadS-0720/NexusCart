@@ -17,7 +17,7 @@ git add .
 echo.
 
 echo [3/4] Creating Git Commit...
-git commit -m "feat: integrate Clover eCommerce API sandbox credentials, live product catalog sync, and secure checkout"
+git commit -m "feat: complete 150+ live e-commerce API stream, Clover Sandbox token integration, and real product details"
 echo.
 
 echo [4/4] Pushing to GitHub (origin main)...

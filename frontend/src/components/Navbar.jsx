@@ -84,34 +84,34 @@ const Navbar = ({ categories = [], onSearch }) => {
             {/* Clover Live Products Badge Link */}
             <Link
               to="/clover"
-              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/30 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10"
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/25 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 hover-lift"
               title="Clover Live Product Details & API Diagnostics"
             >
-              <span>🍀</span>
+              <span className="radar-dot" style={{ width: '8px', height: '8px' }} />
               <span className="hidden sm:inline">Clover Live</span>
               <span className="bg-emerald-500 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full uppercase hidden md:inline">
                 API Live
               </span>
             </Link>
 
-            <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-2.5 py-1 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all text-xs font-semibold">
+            <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-2.5 py-1 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all text-xs font-semibold hover-lift">
               <Package className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5" />
               <span>Orders</span>
             </Link>
 
-            <Link to="/wishlist" className="relative p-2 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all">
+            <Link to="/wishlist" className="relative p-2 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all hover-lift">
               <Heart className="w-5 h-5" />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 font-extrabold text-[10px] w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-md">
+                <span className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 font-extrabold text-[10px] w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-md animate-bounce">
                   {wishlist.length}
                 </span>
               )}
             </Link>
 
-            <Link to="/cart" className="relative p-2 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-amber-400/10 to-amber-400/20 border border-amber-400/30 text-amber-300 hover:text-amber-200 transition-all flex items-center gap-1.5">
-              <ShoppingCart className="w-5 h-5" />
+            <Link to="/cart" className="relative p-2 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-amber-400/15 to-amber-500/25 border border-amber-400/40 text-amber-300 hover:text-amber-200 transition-all flex items-center gap-1.5 hover-lift shadow-sm">
+              <ShoppingCart className="w-5 h-5 text-amber-400" />
               {cartCount > 0 && (
-                <span className="bg-amber-400 text-slate-950 font-extrabold text-xs px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full">
+                <span className="bg-amber-400 text-slate-950 font-extrabold text-xs px-2 py-0.5 rounded-full shadow-sm animate-pulse">
                   {cartCount}
                 </span>
               )}

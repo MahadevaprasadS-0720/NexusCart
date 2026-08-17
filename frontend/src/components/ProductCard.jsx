@@ -11,13 +11,18 @@ const ProductCard = ({ product }) => {
     (product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 15);
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col relative">
+    <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 overflow-hidden flex flex-col relative hover-lift">
       
-      {/* Floating Deal Badge */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+      {/* Floating Deal & Live Badges */}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
         {(product.isCloverLive || (product.id && String(product.id).startsWith('clover_'))) && (
-          <span className="bg-emerald-600 text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md shadow-md flex items-center gap-1 tracking-wider">
-            🍀 Clover Live
+          <span className="bg-emerald-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1.5 tracking-wider animate-pulse-glow">
+            <span className="radar-dot" /> Clover Live
+          </span>
+        )}
+        {product.isLiveMarket && !(product.isCloverLive || (product.id && String(product.id).startsWith('clover_'))) && (
+          <span className="bg-slate-900/90 backdrop-blur-md text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg shadow-sm flex items-center gap-1 tracking-wider">
+            <span className="radar-dot" style={{ width: '6px', height: '6px' }} /> Live Feed
           </span>
         )}
         {product.isDealOfTheDay && (

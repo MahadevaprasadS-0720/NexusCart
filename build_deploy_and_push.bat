@@ -32,7 +32,7 @@ echo.
 
 echo [STEP 3/4] Committing and Pushing to GitHub...
 git add .
-git commit -m "feat(auth): enhance Neumorphic Login with dynamic aurora lighting, glowing rim pulse, and smooth micro-animations"
+git commit -m "refactor(auth): clean and harmonize Neumorphic Login with matching input styles and refined aesthetics"
 git push origin main
 if %ERRORLEVEL% NEQ 0 (
     echo Pushing to origin master instead...

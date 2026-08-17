@@ -41,8 +41,10 @@
 
 ## 🛠️ Tech Stack & Architecture
 
-* **Frontend Development:** React.js, Vite, Tailwind CSS, Modern JavaScript (ES6+)
-* **State Management & Database:** Cloud Firestore (NoSQL), Local State Handling
+* **Frontend Development:** React.js, Vite, Tailwind CSS, Lucide Icons, Modern JavaScript (ES6+)
+* **Backend Development:** Node.js, Express.js REST API
+* **Payment & Inventory Engine:** Clover eCommerce API (Sandbox) & Razorpay/UPI
+* **State Management & Database:** Cloud Firestore (NoSQL), MongoDB
 * **Cloud Infrastructure & Auth:** Firebase Authentication, Firebase Global CDN Hosting
 * **Version Control & DevOps:** Git, GitHub Repository Management
 
@@ -50,8 +52,37 @@
 
 ## 💻 Getting Started Locally
 
-To run this industrial-grade project on your local machine, execute the following commands in your terminal:
+To run this project on your local machine:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/MahadevaprasadS-0720/NexusCart.git](https://github.com/MahadevaprasadS-0720/NexusCart.git)
+   git clone https://github.com/MahadevaprasadS-0720/NexusCart.git
+   cd NexusCart
+   ```
+
+2. **Setup Environment Variables:**
+   - Copy `backend/.env.example` to `backend/.env`
+   - Copy `frontend/.env.example` to `frontend/.env`
+
+3. **Install Dependencies and Launch:**
+   - **One-Click Launch (Windows):** Double click `run.bat`
+   - **Frontend Only:**
+     ```bash
+     cd frontend
+     npm install
+     npm run dev
+     ```
+   - **Backend Server:**
+     ```bash
+     cd backend
+     npm install
+     npm start
+     ```
+
+4. **Push Updates to GitHub:**
+   - Run `push_to_github.bat` or:
+     ```bash
+     git add .
+     git commit -m "feat: integrate Clover eCommerce sandbox tokens"
+     git push origin main
+     ```

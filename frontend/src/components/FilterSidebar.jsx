@@ -19,12 +19,12 @@ const FilterSidebar = ({
 
   return (
     <aside className="w-full lg:w-72 shrink-0 space-y-6">
-      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6 sticky top-24">
+      <div className="neu-card p-6 space-y-6 sticky top-24">
         
         {/* Header Title */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/60">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-amber-400/10 text-amber-600">
+            <div className="p-2 neu-card-inset text-amber-600">
               <SlidersHorizontal className="w-4 h-4" />
             </div>
             <h3 className="font-extrabold text-slate-900 text-base tracking-tight">Refine Catalog</h3>

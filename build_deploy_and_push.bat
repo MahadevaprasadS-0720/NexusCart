@@ -32,7 +32,7 @@ echo.
 
 echo [STEP 3/4] Committing and Pushing to GitHub...
 git add .
-git commit -m "fix(auth): remove admin credentials and confidential access info from public login UI"
+git commit -m "feat(ui): extend Neumorphic Soft-UI design to Navbar, Category Pills, and Product Cards"
 git push origin main
 if %ERRORLEVEL% NEQ 0 (
     echo Pushing to origin master instead...

@@ -111,7 +111,7 @@ const Home = () => {
   }, [products, searchQuery, selectedCategory, priceRange, selectedBrand, sortBy]);
 
   return (
-    <div className="min-h-screen bg-slate-50/70 pb-16 font-['Inter']">
+    <div className="min-h-screen neu-bg pb-16 font-['Inter']">
       
       {/* Top Category Pills Nav */}
       <CategoryNav
@@ -126,7 +126,7 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         
         {/* Main Search & Control Bar (Mobile & Desktop) */}
-        <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200/80 shadow-sm mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="neu-card p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -135,7 +135,7 @@ const Home = () => {
               placeholder="Search products by title, model, or brand..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 text-slate-900 text-sm font-medium pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all placeholder:text-slate-400"
+              className="w-full neu-input text-slate-900 text-sm font-medium pl-10 pr-4 py-3 outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -144,7 +144,7 @@ const Home = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-slate-50 text-slate-900 text-xs font-bold px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 cursor-pointer"
+              className="neu-btn text-slate-800 text-xs font-extrabold px-4 py-3 outline-none cursor-pointer"
             >
               <option value="featured">✨ Featured Deals</option>
               <option value="price-asc">💵 Price: Low to High</option>

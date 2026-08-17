@@ -22,41 +22,41 @@ const Navbar = ({ categories = [], onSearch }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-900/95 border-b border-slate-800 text-white shadow-lg transition-all duration-300">
+    <header className="sticky top-0 z-50 neu-nav text-slate-800 transition-all duration-300 font-['Inter']">
       {/* Primary Top Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
-          {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-amber-300 flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform duration-300">
-              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
+          {/* Brand Logo with Neumorphic Circle */}
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="neu-btn-circle text-amber-500 group-hover:text-amber-600 transition-colors shrink-0">
+              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <div className="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-1 font-['Outfit']">
-                NexusCart <span className="bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">Prime</span>
+              <div className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-800 flex items-center gap-1 font-['Outfit']">
+                NexusCart <span className="text-amber-500 font-black">Prime</span>
               </div>
-              <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 hidden xs:flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5 text-amber-400" /> Enterprise Edition
+              <div className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-slate-400 hidden xs:flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Enterprise Edition
               </div>
             </div>
           </Link>
 
-          {/* Delivery Badge (Desktop) */}
-          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-800/60 border border-slate-700/50 text-xs">
-            <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
+          {/* Delivery Badge (Desktop) - Inset Soft UI */}
+          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs">
+            <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
             <div>
-              <div className="text-[10px] text-slate-400 font-medium">Deliver to {user ? user.name.split(' ')[0] : 'Guest'}</div>
-              <div className="font-bold text-slate-200">Bengaluru 560001</div>
+              <div className="text-[10px] text-slate-500 font-medium">Deliver to {user ? user.name.split(' ')[0] : 'Guest'}</div>
+              <div className="font-extrabold text-slate-700">Bengaluru 560001</div>
             </div>
           </div>
 
-          {/* Desktop Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-2xl hidden md:flex items-center bg-slate-800/80 rounded-2xl border border-slate-700/60 focus-within:border-amber-400/80 focus-within:ring-2 focus-within:ring-amber-400/20 transition-all duration-300 overflow-hidden">
+          {/* Desktop Search Bar - Recessed Neumorphic Container */}
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-2xl hidden md:flex items-center neu-input p-1 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-500/20 transition-all duration-300">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-3 border-r border-slate-700/60 outline-none cursor-pointer hover:bg-slate-700/50 transition-colors"
+              className="bg-transparent text-slate-600 text-xs font-bold px-3 py-2 border-r border-slate-300 outline-none cursor-pointer hover:text-slate-900 transition-colors"
             >
               <option value="All">All Categories</option>
               <option value="Mobiles">Mobiles</option>
@@ -71,62 +71,64 @@ const Navbar = ({ categories = [], onSearch }) => {
               placeholder="Search 10,000+ NexusCart deals..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent text-sm text-white px-4 py-3 outline-none placeholder:text-slate-500"
+              className="w-full bg-transparent text-sm text-slate-800 font-medium px-4 py-2 outline-none placeholder:text-slate-400"
             />
 
-            <button type="submit" className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-5 py-3 font-bold transition-all flex items-center justify-center shrink-0 cursor-pointer">
+            <button type="submit" className="neu-btn-primary px-4 py-2.5 text-white font-extrabold transition-all flex items-center justify-center shrink-0 cursor-pointer rounded-xl">
               <Search className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Actions Nav Links */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-2.5 py-1 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all text-xs font-semibold hover-lift">
-              <Package className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5" />
+          {/* Actions Nav Links - Neumorphic Tactile Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-3 py-1.5 neu-btn text-slate-600 hover:text-amber-600 transition-all text-xs font-bold">
+              <Package className="w-4 h-4 mb-0.5 text-slate-500" />
               <span>Orders</span>
             </Link>
 
-            <Link to="/wishlist" className="relative p-2 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all hover-lift">
-              <Heart className="w-5 h-5" />
+            {/* Wishlist Circle */}
+            <Link to="/wishlist" className="relative neu-btn-circle text-slate-600 hover:text-red-500 transition-colors" title="Wishlist">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 font-extrabold text-[10px] w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-md animate-bounce">
+                <span className="absolute -top-1 -right-1 bg-amber-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-md">
                   {wishlist.length}
                 </span>
               )}
             </Link>
 
-            <Link to="/cart" className="relative p-2 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-amber-400/15 to-amber-500/25 border border-amber-400/40 text-amber-300 hover:text-amber-200 transition-all flex items-center gap-1.5 hover-lift shadow-sm">
-              <ShoppingCart className="w-5 h-5 text-amber-400" />
+            {/* Cart Button */}
+            <Link to="/cart" className="relative px-3.5 py-2 neu-btn text-slate-700 hover:text-amber-600 transition-all flex items-center gap-2 font-extrabold text-xs" title="Shopping Cart">
+              <ShoppingCart className="w-4 h-4 text-amber-500" />
               {cartCount > 0 && (
-                <span className="bg-amber-400 text-slate-950 font-extrabold text-xs px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                <span className="bg-amber-500 text-white font-black text-[10px] px-1.5 py-0.5 rounded-full shadow-sm">
                   {cartCount}
                 </span>
               )}
-              <span className="hidden xl:inline text-xs font-bold">Cart</span>
+              <span className="hidden xl:inline">Cart</span>
             </Link>
 
             {/* Admin Switcher */}
             {isAdmin && (
-              <Link to="/admin" className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-300 hover:bg-sky-500/30 font-bold text-xs flex items-center gap-1 transition-all">
-                <ShieldCheck className="w-4 h-4" /> <span className="hidden sm:inline">Admin</span>
+              <Link to="/admin" className="px-3 py-2 neu-btn text-sky-600 font-extrabold text-xs flex items-center gap-1.5 hover:text-sky-700 transition-all">
+                <ShieldCheck className="w-4 h-4 text-sky-500" /> <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
 
             {/* Profile User Dropdown / Login */}
             {user ? (
-              <div className="flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2 border-l border-slate-800">
-                <Link to="/profile" className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-800/60 transition-all">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 border border-amber-400/40 flex items-center justify-center font-bold text-amber-400 text-xs">
+              <div className="flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2">
+                <Link to="/profile" className="flex items-center gap-2 p-1 neu-btn rounded-full pr-3 hover:text-amber-600 transition-all">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-extrabold text-xs shadow-sm">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <span className="hidden md:inline text-xs font-bold text-slate-200">{user.name ? user.name.split(' ')[0] : 'User'}</span>
+                  <span className="hidden md:inline text-xs font-extrabold text-slate-700">{user.name ? user.name.split(' ')[0] : 'User'}</span>
                 </Link>
-                <button onClick={logout} className="p-1.5 text-slate-400 hover:text-red-400 transition-colors cursor-pointer" title="Logout">
+                <button onClick={logout} className="neu-btn p-2 text-slate-500 hover:text-red-500 transition-colors cursor-pointer" title="Logout">
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition-all flex items-center gap-1">
+              <Link to="/login" className="neu-btn-primary px-4 py-2 text-white font-extrabold text-xs transition-all flex items-center gap-1.5 shadow-sm">
                 <User className="w-4 h-4" /> <span>Sign In</span>
               </Link>
             )}
@@ -135,15 +137,15 @@ const Navbar = ({ categories = [], onSearch }) => {
 
         {/* Mobile Dedicated Search Input */}
         <div className="md:hidden pb-3 pt-1">
-          <form onSubmit={handleSearchSubmit} className="flex items-center bg-slate-800/90 rounded-xl border border-slate-700/60 overflow-hidden">
+          <form onSubmit={handleSearchSubmit} className="flex items-center neu-input p-1">
             <input
               type="text"
               placeholder="Search 10,000+ products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent text-xs text-white px-3.5 py-2.5 outline-none placeholder:text-slate-500"
+              className="w-full bg-transparent text-xs text-slate-800 font-semibold px-3 py-2 outline-none placeholder:text-slate-400"
             />
-            <button type="submit" className="bg-amber-400 text-slate-950 px-3.5 py-2.5 font-bold transition-all flex items-center justify-center shrink-0">
+            <button type="submit" className="neu-btn-primary p-2 text-white font-bold transition-all flex items-center justify-center shrink-0 rounded-xl">
               <Search className="w-3.5 h-3.5" />
             </button>
           </form>

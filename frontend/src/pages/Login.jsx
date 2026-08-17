@@ -14,7 +14,6 @@ import {
   EyeOff, 
   ShieldCheck, 
   Zap, 
-  KeyRound,
   ArrowLeft
 } from 'lucide-react';
 import {
@@ -270,7 +269,7 @@ const Login = ({ initialMode = 'login' }) => {
               <div className="w-7 h-7 rounded-xl neu-btn flex items-center justify-center text-sky-500 shrink-0">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
-              <span>Instant Buyer & Admin Cloud Verification</span>
+              <span>Instant Cloud Profile Synchronization</span>
             </div>
           </div>
 
@@ -278,26 +277,17 @@ const Login = ({ initialMode = 'login' }) => {
           <div className="space-y-2 pt-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-                ⚡ 1-Click Quick Fill:
+                ⚡ Try Demo:
               </span>
-              <span className="text-[10px] text-slate-400 font-semibold">Test Store</span>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('smahi.072006@gmail.com', 'admin123')}
-                className="neu-btn px-3.5 py-1.5 text-[11px] font-extrabold text-slate-700 flex items-center gap-1.5 hover:text-amber-600 transition-colors"
-                title="Fill Admin credentials (smahi.072006@gmail.com)"
-              >
-                <KeyRound className="w-3.5 h-3.5 text-amber-500" /> Admin Access
-              </button>
+            <div>
               <button
                 type="button"
                 onClick={() => handleQuickFill('john@example.com', 'password123')}
-                className="neu-btn px-3.5 py-1.5 text-[11px] font-extrabold text-slate-700 flex items-center gap-1.5 hover:text-sky-600 transition-colors"
-                title="Fill Demo Customer credentials (john@example.com)"
+                className="neu-btn px-4 py-2 text-[11px] font-extrabold text-slate-700 flex items-center gap-2 hover:text-amber-600 transition-colors cursor-pointer"
+                title="Fill Demo Customer credentials"
               >
-                <User className="w-3.5 h-3.5 text-sky-500" /> Customer Demo
+                <User className="w-3.5 h-3.5 text-amber-500" /> Demo Account (1-Click Fill)
               </button>
             </div>
           </div>

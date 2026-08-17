@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
@@ -10,107 +10,115 @@ const CartDrawer = () => {
   if (!isCartDrawerOpen) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', justifyContent: 'flex-end' }}>
+    <div className="fixed inset-0 z-50 flex justify-end font-['Inter']">
       {/* Backdrop */}
       <div
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)' }}
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
         onClick={() => setIsCartDrawerOpen(false)}
       />
 
       {/* Drawer Container */}
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '420px',
-          height: '100%',
-          background: '#ffffff',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '-4px 0 25px rgba(0,0,0,0.15)',
-          zIndex: 2010
-        }}
-      >
+      <div className="relative w-full max-w-md h-full bg-[#eef2f7] flex flex-col shadow-2xl z-50 border-l border-white/80 animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div style={{ padding: '1.2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#131921', color: '#fff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
-            <ShoppingBag size={20} color="#febd69" /> Your Cart ({cartItems.length})
+        <div className="p-5 neu-card flex justify-between items-center m-4 rounded-3xl">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl neu-btn-circle text-amber-500 flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+            <span className="font-black text-sm text-slate-800 font-['Outfit']">
+              Your Cart ({cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'})
+            </span>
           </div>
-          <button onClick={() => setIsCartDrawerOpen(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>
-            <X size={22} />
+          <button
+            onClick={() => setIsCartDrawerOpen(false)}
+            className="neu-btn w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Cart Item List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+        <div className="flex-1 overflow-y-auto px-4 space-y-3">
           {cartItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
-              <ShoppingBag size={48} style={{ margin: '0 auto 1rem auto', opacity: 0.4 }} />
-              <p style={{ fontWeight: '600' }}>Your cart is empty!</p>
-              <p style={{ fontSize: '0.85rem' }}>Explore deals and add products to start shopping.</p>
+            <div className="neu-card p-10 rounded-3xl text-center space-y-3 my-8">
+              <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto" />
+              <p className="font-black text-sm text-slate-800">Your cart is empty!</p>
+              <p className="text-xs text-slate-500">Explore deals and add products to start shopping.</p>
             </div>
           ) : (
-            cartItems.map((item) => (
-              <div key={item.id} style={{ display: 'flex', gap: '1rem', padding: '0.8rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                <img
-                  src={item.images && item.images[0] ? item.images[0] : item.image}
-                  alt={item.title}
-                  style={{ width: '64px', height: '64px', objectFit: 'contain', background: '#f8fafc', borderRadius: '6px', padding: '4px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ fontSize: '0.85rem', fontWeight: '600', color: '#0f172a', lineHeight: '1.3' }}>{item.title}</h4>
-                  <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0f172a', margin: '0.3rem 0' }}>
-                    ₹{item.price.toLocaleString('en-IN')}
+            cartItems.map((item) => {
+              const pId = item.id || item._id;
+              const price = item.price || 0;
+
+              return (
+                <div
+                  key={pId}
+                  className="neu-card p-3.5 rounded-2xl flex items-center gap-3"
+                >
+                  <div className="w-16 h-16 rounded-xl neu-card-inset p-1.5 flex items-center justify-center shrink-0">
+                    <img
+                      src={item.images && item.images[0] ? item.images[0] : item.image}
+                      alt={item.name || item.title}
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
-                      <button onClick={() => updateQuantity(item.id, -1)} style={{ padding: '2px 6px', border: 'none', background: '#f1f5f9' }}>
-                        <Minus size={12} />
-                      </button>
-                      <span style={{ padding: '0 8px', fontSize: '0.82rem', fontWeight: '700' }}>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} style={{ padding: '2px 6px', border: 'none', background: '#f1f5f9' }}>
-                        <Plus size={12} />
+
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-black text-slate-900 line-clamp-1">
+                      {item.name || item.title}
+                    </h4>
+                    <div className="text-xs font-black text-amber-600 mt-0.5">
+                      ₹{price.toLocaleString('en-IN')}
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1 neu-card-inset px-2 py-0.5 rounded-xl">
+                        <button
+                          onClick={() => updateQuantity(pId, -1)}
+                          className="neu-btn p-1 rounded-lg text-slate-600 hover:text-amber-600 cursor-pointer"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="px-1.5 text-[11px] font-black text-slate-900">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(pId, 1)}
+                          className="neu-btn p-1 rounded-lg text-slate-600 hover:text-amber-600 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => removeFromCart(pId)}
+                        className="neu-btn p-1.5 rounded-xl text-slate-400 hover:text-red-500 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                      <Trash2 size={15} />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
         {/* Footer Subtotal & Checkout */}
         {cartItems.length > 0 && (
-          <div style={{ padding: '1.2rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontWeight: '800', fontSize: '1.1rem' }}>
-              <span>Subtotal:</span>
-              <span style={{ color: '#2874f0' }}>₹{cartTotal.toLocaleString('en-IN')}</span>
+          <div className="p-5 m-4 neu-card rounded-3xl space-y-3">
+            <div className="flex justify-between items-center text-xs font-black">
+              <span className="text-slate-500">Cart Total:</span>
+              <span className="text-base text-amber-600">₹{cartTotal.toLocaleString('en-IN')}</span>
             </div>
+
             <button
               onClick={() => {
                 setIsCartDrawerOpen(false);
                 navigate('/cart');
               }}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(180deg, #f8e3a0 0%, #eab308 100%)',
-                border: '1px solid #d97706',
-                padding: '0.75rem',
-                borderRadius: '6px',
-                fontWeight: '800',
-                fontSize: '0.95rem',
-                color: '#0f172a',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                cursor: 'pointer'
-              }}
+              className="w-full neu-btn-primary py-3 rounded-2xl text-xs font-black text-white flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
-              View Full Cart & Checkout <ArrowRight size={18} />
+              <span>View Cart & Checkout</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         )}

@@ -32,12 +32,35 @@ const ProductDetails = () => {
   const fetchProductAndReviews = async () => {
     try {
       setLoading(true);
-      const res = await api.getProductById(id);
-      if (res.success && res.product) {
-        setProduct(res.product);
-        setSelectedImage(res.product.image || (res.product.images ? res.product.images[0] : ''));
-        if (res.product.reviews && res.product.reviews.length > 0) {
-          setReviews(res.product.reviews);
+      let foundProduct = null;
+
+      try {
+        const res = await api.getProductById(id);
+        if (res.success && res.product) {
+          foundProduct = res.product;
+        }
+      } catch (e) {}
+
+      // Fallback 1: Search in initialProducts
+      if (!foundProduct) {
+        foundProduct = initialProducts.find(p => (p.id || p._id) === id);
+      }
+
+      // Fallback 2: Search in Live Market catalog
+      if (!foundProduct) {
+        try {
+          const liveRes = await fetchLiveMarketStoreProducts();
+          if (liveRes.success && liveRes.products) {
+            foundProduct = liveRes.products.find(p => (p.id || p._id) === id);
+          }
+        } catch (me) {}
+      }
+
+      if (foundProduct) {
+        setProduct(foundProduct);
+        setSelectedImage(foundProduct.image || (foundProduct.images ? foundProduct.images[0] : ''));
+        if (foundProduct.reviews && foundProduct.reviews.length > 0) {
+          setReviews(foundProduct.reviews);
         }
       }
 

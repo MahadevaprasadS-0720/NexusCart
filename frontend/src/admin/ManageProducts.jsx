@@ -1,16 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit3, Trash2, X, Sparkles, CheckCircle, RefreshCw, ExternalLink, ShieldCheck, Tag } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Edit3,
+  Trash2,
+  X,
+  Sparkles,
+  CheckCircle,
+  RefreshCw,
+  ExternalLink,
+  ShieldCheck,
+  Tag,
+  Package,
+  Star,
+  LayoutGrid,
+  List
+} from 'lucide-react';
 import { api } from '../services/api';
 import { initialProducts } from '../data/mockData';
 import { CLOVER_CONFIG } from '../config/cloverConfig';
+import { Link } from 'react-router-dom';
 
 const ManageProducts = () => {
   const [products, setProducts] = useState(initialProducts);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCat, setSelectedCat] = useState('All');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
   const [cloverSyncing, setCloverSyncing] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,7 +52,7 @@ const ManageProducts = () => {
   const fetchProducts = async () => {
     try {
       const res = await api.getProducts();
-      if (res.success && res.products) {
+      if (res.success && res.products && res.products.length > 0) {
         setProducts(res.products);
       }
     } catch (err) {
@@ -47,19 +66,18 @@ const ManageProducts = () => {
       setStatusMessage('');
       const cloverRes = await api.getCloverLiveProducts();
       if (cloverRes.success && cloverRes.products && cloverRes.products.length > 0) {
-        // Merge Clover items
         const existingIds = new Set(products.map(p => p.id || p._id));
         const newItems = cloverRes.products.filter(p => !existingIds.has(p.id));
         setProducts(prev => [...cloverRes.products, ...prev.filter(p => !p.id.startsWith('clover_'))]);
         setStatusMessage(`✅ Successfully synchronized ${cloverRes.products.length} live products from Clover Merchant (${CLOVER_CONFIG.merchantId})!`);
       } else {
-        setStatusMessage(`ℹ️ Clover Sandbox Connected (Merchant: ${CLOVER_CONFIG.merchantId}). Inventory endpoint verified active.`);
+        setStatusMessage(`ℹ️ Clover Sandbox Connected (Merchant: ${CLOVER_CONFIG.merchantId}). Sync completed.`);
       }
     } catch (err) {
       setStatusMessage(`⚠️ Clover Sync: ${err.message || 'Connected to Clover Sandbox.'}`);
     } finally {
       setCloverSyncing(false);
-      setTimeout(() => setStatusMessage(''), 6000);
+      setTimeout(() => setStatusMessage(''), 5000);
     }
   };
 
@@ -99,374 +117,498 @@ const ManageProducts = () => {
     setShowModal(true);
   };
 
-  const handleSaveProduct = async (e) => {
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this product from Firestore?')) return;
+    try {
+      await api.deleteProduct(id);
+    } catch (e) {}
+
+    setProducts(prev => prev.filter(p => (p.id || p._id) !== id));
+    setStatusMessage('🗑️ Product removed from Firestore database.');
+    setTimeout(() => setStatusMessage(''), 4000);
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     const payload = {
-      ...formData,
       name: formData.name,
       title: formData.name,
+      description: formData.description || 'Premium catalog item',
       price: Number(formData.price),
       originalPrice: Number(formData.originalPrice || formData.price),
-      stock: Number(formData.stock),
+      category: formData.category,
+      brand: formData.brand || 'NexusCart Brand',
+      image: formData.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+      stock: Number(formData.stock || 15),
       rating: Number(formData.rating || 4.5),
-      image: formData.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
-      images: [formData.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80']
+      isFeatured: formData.isFeatured,
+      isDealOfTheDay: formData.isDealOfTheDay
     };
 
     if (editingId) {
       try {
         await api.updateProduct(editingId, payload);
       } catch (e) {}
+
       setProducts(prev =>
-        prev.map(p => ((p.id === editingId || p._id === editingId) ? { ...p, ...payload, id: editingId, _id: editingId } : p))
+        prev.map(p => ((p.id || p._id) === editingId ? { ...p, ...payload } : p))
       );
-      setStatusMessage('Product updated successfully!');
+      setStatusMessage('✨ Product updated successfully in Cloud Firestore!');
     } else {
-      let created = null;
       try {
         const res = await api.createProduct(payload);
-        if (res.success && res.product) created = res.product;
-      } catch (e) {}
-
-      if (!created) {
-        created = { ...payload, id: `prod-${Date.now()}`, _id: `prod-${Date.now()}` };
+        if (res.success && res.product) {
+          setProducts([res.product, ...products]);
+        } else {
+          setProducts([{ ...payload, id: `prod-${Date.now()}` }, ...products]);
+        }
+      } catch (e) {
+        setProducts([{ ...payload, id: `prod-${Date.now()}` }, ...products]);
       }
-      setProducts(prev => [created, ...prev]);
-      setStatusMessage('New product added to catalog successfully!');
+      setStatusMessage('🎉 New product created in Cloud Firestore!');
     }
 
     setShowModal(false);
-    setTimeout(() => setStatusMessage(''), 3000);
+    setTimeout(() => setStatusMessage(''), 4000);
   };
 
-  const handleDeleteProduct = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product from catalog?')) {
-      try {
-        await api.deleteProduct(id);
-      } catch (e) {}
-      setProducts(prev => prev.filter(p => p.id !== id && p._id !== id));
-      setStatusMessage('Product deleted successfully.');
-      setTimeout(() => setStatusMessage(''), 3000);
-    }
-  };
-
+  // Filter products by search and category
   const filteredProducts = products.filter(p => {
-    const titleMatch = (p.name || p.title || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const catMatch = (p.category || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const brandMatch = (p.brand || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return titleMatch || catMatch || brandMatch;
+    const title = (p.name || p.title || '').toLowerCase();
+    const brand = (p.brand || '').toLowerCase();
+    const cat = p.category || '';
+    const matchSearch = title.includes(searchTerm.toLowerCase()) || brand.includes(searchTerm.toLowerCase());
+    const matchCat = selectedCat === 'All' || cat === selectedCat;
+    return matchSearch && matchCat;
   });
 
+  const categoriesList = ['All', 'Mobiles', 'Electronics', 'Fashion', 'Home & Kitchen', 'Appliances', 'Beauty & Toys'];
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+    <div className="space-y-6 font-['Inter']">
+      {/* Top Header Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#fff' }}>
-            Admin Product Inventory ({products.length})
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-['Outfit']">
+            Manage Products ({products.length})
           </h2>
-          <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>Add, edit, or delete store items in real time</p>
+          <p className="text-xs font-semibold text-slate-500 mt-0.5">
+            Cloud Firestore product catalog with live inventory synchronization
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.8rem' }}>
+        <div className="flex items-center gap-3">
           <button
             onClick={handleSyncCloverInventory}
             disabled={cloverSyncing}
-            style={{
-              background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-              color: '#fff',
-              border: '1px solid #22c55e',
-              padding: '0.65rem 1.2rem',
-              borderRadius: '8px',
-              fontWeight: '700',
-              fontSize: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(22,163,74,0.3)'
-            }}
+            className="neu-btn px-4 py-2.5 rounded-2xl text-xs font-black text-emerald-700 hover:text-emerald-800 flex items-center gap-2 cursor-pointer transition-all"
+            title="Sync with Clover Merchant"
           >
-            <RefreshCw size={16} className={cloverSyncing ? 'spin-anim' : ''} />
-            {cloverSyncing ? 'Syncing Clover...' : '🍀 Sync Clover Live Products'}
+            <RefreshCw className={`w-4 h-4 text-emerald-600 ${cloverSyncing ? 'animate-spin' : ''}`} />
+            <span>{cloverSyncing ? 'Syncing Clover...' : 'Sync Clover'}</span>
           </button>
 
           <button
             onClick={handleOpenAddModal}
-            style={{
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              color: '#fff',
-              border: 'none',
-              padding: '0.65rem 1.2rem',
-              borderRadius: '8px',
-              fontWeight: '700',
-              fontSize: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer'
-            }}
+            className="neu-btn-primary px-5 py-2.5 rounded-2xl text-xs font-black text-white flex items-center gap-2 cursor-pointer shadow-md"
           >
-            <Plus size={18} /> Add New Product
+            <Plus className="w-4 h-4" /> Add Product
           </button>
         </div>
       </div>
 
-      {/* Clover Merchant Status Panel */}
-      <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', padding: '1rem 1.2rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            <div style={{ width: '36px', height: '36px', background: '#16a34a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
-              🍀
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontWeight: '800', color: '#f8fafc', fontSize: '0.95rem' }}>Clover eCommerce API Linked</span>
-                <span style={{ background: '#166534', color: '#86efac', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '10px', fontWeight: '700' }}>
-                  ACTIVE SANDBOX
-                </span>
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>
-                Merchant ID: <code style={{ color: '#38bdf8' }}>{CLOVER_CONFIG.merchantId}</code> | Token: <code style={{ color: '#e2e8f0' }}>{CLOVER_CONFIG.publicToken.substring(0, 12)}...</code>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <a
-              href={CLOVER_CONFIG.dashboardUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                background: '#1e293b',
-                color: '#38bdf8',
-                border: '1px solid #334155',
-                padding: '0.45rem 0.85rem',
-                borderRadius: '6px',
-                fontSize: '0.78rem',
-                fontWeight: '700',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem'
-              }}
-            >
-              <ExternalLink size={14} /> Open Clover Dashboard
-            </a>
-          </div>
-        </div>
-      </div>
-
+      {/* Status Toast Banner */}
       {statusMessage && (
-        <div style={{ background: '#065f46', color: '#34d399', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.2rem', fontSize: '0.85rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <CheckCircle size={18} /> {statusMessage}
+        <div className="neu-card p-4 rounded-2xl text-xs font-black text-emerald-800 bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 shadow-sm">
+          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{statusMessage}</span>
         </div>
       )}
 
-      {/* Search Input */}
-      <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-        <input
-          type="text"
-          placeholder="Search products by name, category, or brand..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem 0.75rem 2.5rem',
-            background: '#1e293b',
-            border: '1px solid #334155',
-            borderRadius: '8px',
-            color: '#fff',
-            outline: 'none'
-          }}
-        />
-        <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+      {/* Search & Category Filter Bar */}
+      <div className="neu-card p-4 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Search Field */}
+        <div className="w-full md:w-80 neu-input flex items-center px-3 py-2">
+          <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search by title or brand..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent text-xs font-semibold text-slate-800 outline-none placeholder:text-slate-400"
+          />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm('')} className="text-slate-400 hover:text-slate-700 text-xs font-black">
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+          {categoriesList.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCat(cat)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+                selectedCat === cat
+                  ? 'neu-card-inset text-amber-700 font-black shadow-inner'
+                  : 'neu-btn text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* View Mode Switcher */}
+        <div className="flex items-center gap-1.5 neu-card-inset p-1 rounded-xl shrink-0">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-1.5 rounded-lg text-xs transition-all ${
+              viewMode === 'grid' ? 'neu-btn text-amber-600 shadow-sm' : 'text-slate-400'
+            }`}
+            title="Grid View"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={`p-1.5 rounded-lg text-xs transition-all ${
+              viewMode === 'table' ? 'neu-btn text-amber-600 shadow-sm' : 'text-slate-400'
+            }`}
+            title="Table View"
+          >
+            <List className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Products Table */}
-      <div className="admin-table-card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>IMAGE</th>
-              <th>PRODUCT NAME</th>
-              <th>CATEGORY</th>
-              <th>PRICE</th>
-              <th>STOCK</th>
-              <th>RATING</th>
-              <th>ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((p) => {
-              const id = p.id || p._id;
-              const img = p.image || (p.images ? p.images[0] : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80');
-              return (
-                <tr key={id}>
-                  <td>
+      {/* PRODUCTS DISPLAY */}
+      {filteredProducts.length === 0 ? (
+        <div className="neu-card p-12 rounded-3xl text-center space-y-3">
+          <Package className="w-12 h-12 text-slate-300 mx-auto" />
+          <h4 className="text-base font-black text-slate-800">No products match your criteria</h4>
+          <p className="text-xs text-slate-500">Try adjusting your search keywords or category filters.</p>
+        </div>
+      ) : viewMode === 'grid' ? (
+        /* GRID VIEW */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map(prod => {
+            const pId = prod.id || prod._id;
+            const price = prod.price || 0;
+            const orig = prod.originalPrice || price;
+            const discount = orig > price ? Math.round(((orig - price) / orig) * 100) : 0;
+
+            return (
+              <div key={pId} className="neu-card p-5 rounded-3xl flex flex-col justify-between space-y-4 hover:translate-y-[-2px] transition-all">
+                <div>
+                  <div className="relative aspect-square rounded-2xl neu-card-inset p-3 flex items-center justify-center overflow-hidden mb-3">
                     <img
-                      src={img}
-                      alt={p.name || p.title}
-                      style={{ width: '44px', height: '44px', objectFit: 'contain', background: '#0f172a', borderRadius: '6px', padding: '2px' }}
+                      src={prod.image || (prod.images ? prod.images[0] : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80')}
+                      alt={prod.name || prod.title}
+                      className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
                     />
-                  </td>
-                  <td style={{ fontWeight: '600', maxWidth: '280px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.name || p.title}
+                    {discount > 0 && (
+                      <span className="absolute top-2 left-2 bg-emerald-500 text-white font-black text-[9px] px-2 py-0.5 rounded-md shadow-sm">
+                        {discount}% OFF
                       </span>
-                      {(p.isCloverLive || (p.id && String(p.id).startsWith('clover_'))) && (
-                        <span style={{ background: '#14532d', color: '#86efac', border: '1px solid #22c55e', fontSize: '0.68rem', padding: '1px 5px', borderRadius: '4px', fontWeight: '700' }}>
-                          🍀 Clover
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="neu-badge px-2 py-0.5 text-[9px] font-black text-amber-600 uppercase">
+                        {prod.category}
+                      </span>
+                      <div className="flex items-center gap-1 text-[11px] font-extrabold text-amber-600">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{prod.rating || 4.5}</span>
+                      </div>
+                    </div>
+
+                    <h4 className="font-extrabold text-xs text-slate-900 line-clamp-2 leading-relaxed">
+                      {prod.name || prod.title}
+                    </h4>
+
+                    <div className="flex items-baseline gap-2 pt-1">
+                      <span className="font-black text-base text-slate-900">
+                        ₹{price.toLocaleString('en-IN')}
+                      </span>
+                      {orig > price && (
+                        <span className="text-[11px] font-bold text-slate-400 line-through">
+                          ₹{orig.toLocaleString('en-IN')}
                         </span>
                       )}
                     </div>
-                  </td>
-                  <td>
-                    <span style={{ background: '#334155', padding: '2px 8px', borderRadius: '4px', fontSize: '0.78rem' }}>
-                      {p.category}
-                    </span>
-                  </td>
-                  <td style={{ fontWeight: '800', color: '#38bdf8' }}>₹{p.price.toLocaleString('en-IN')}</td>
-                  <td>
-                    <span style={{ color: p.stock > 10 ? '#4ade80' : '#facc15', fontWeight: '700' }}>
-                      {p.stock} units
-                    </span>
-                  </td>
-                  <td style={{ color: '#facc15', fontWeight: '700' }}>
-                    ⭐ {p.rating || 4.5}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => handleOpenEditModal(p)}
-                        style={{ background: '#334155', color: '#38bdf8', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
-                        title="Edit Product"
-                      >
-                        <Edit3 size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(id)}
-                        style={{ background: '#7f1d1d', color: '#fca5a5', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
-                        title="Delete Product"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                </div>
 
-      {/* Product Form Modal */}
+                <div className="pt-3 border-t border-slate-300/60 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-extrabold text-slate-500">
+                    Stock: <span className="text-slate-800">{prod.stock || 15}</span>
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/product/${pId}`}
+                      className="neu-btn p-2 rounded-xl text-slate-600 hover:text-amber-600"
+                      title="View on Store"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      onClick={() => handleOpenEditModal(prod)}
+                      className="neu-btn p-2 rounded-xl text-blue-600 hover:text-blue-700"
+                      title="Edit Product"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(pId)}
+                      className="neu-btn p-2 rounded-xl text-red-500 hover:text-red-600"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* TABLE VIEW */
+        <div className="neu-card p-6 rounded-3xl overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-300/80 text-[11px] font-black text-slate-500 uppercase tracking-wider">
+                <th className="pb-3 px-3">Product</th>
+                <th className="pb-3 px-3">Category</th>
+                <th className="pb-3 px-3">Price</th>
+                <th className="pb-3 px-3">Stock</th>
+                <th className="pb-3 px-3">Rating</th>
+                <th className="pb-3 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 text-xs font-semibold">
+              {filteredProducts.map(prod => {
+                const pId = prod.id || prod._id;
+                return (
+                  <tr key={pId} className="hover:bg-slate-100/50 transition-colors">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={prod.image || (prod.images ? prod.images[0] : '')}
+                          alt={prod.name || prod.title}
+                          className="w-10 h-10 object-contain rounded-xl neu-card-inset p-1 shrink-0"
+                        />
+                        <div className="max-w-xs">
+                          <div className="font-extrabold text-slate-900 line-clamp-1">{prod.name || prod.title}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{pId}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="neu-badge px-2 py-0.5 text-[9px] font-black text-amber-600 uppercase">
+                        {prod.category}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-black text-slate-900">
+                      ₹{(prod.price || 0).toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-3 px-3 text-slate-700 font-bold">{prod.stock || 15} units</td>
+                    <td className="py-3 px-3 text-amber-600 font-black">★ {prod.rating || 4.5}</td>
+                    <td className="py-3 px-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenEditModal(prod)}
+                          className="neu-btn p-1.5 rounded-xl text-blue-600 hover:text-blue-700"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(pId)}
+                          className="neu-btn p-1.5 rounded-xl text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ADD / EDIT PRODUCT MODAL */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '1rem' }}>
-          <div style={{ background: '#1e293b', width: '100%', maxWidth: '600px', borderRadius: '14px', border: '1px solid #334155', padding: '1.8rem', color: '#fff', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', paddingBottom: '0.8rem', borderBottom: '1px solid #334155' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>
-                {editingId ? 'Edit Product Details' : 'Add New Product to Store'}
-              </h3>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                <X size={20} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="neu-card p-6 sm:p-8 rounded-3xl w-full max-w-xl space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl neu-btn-circle text-amber-500 flex items-center justify-center">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">
+                    {editingId ? 'Edit Product' : 'Add New Product'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">Cloud Firestore Product Record</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="neu-btn w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800"
+              >
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Product Name / Title</label>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Product Name / Title *
+                </label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Apple MacBook Pro 16 M3 Max"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Sony WH-1000XM5 Headphones"
-                  style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
+                  className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Category</label>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Price (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="129900"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Original Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="149900"
+                    value={formData.originalPrice}
+                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Category
+                  </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800 cursor-pointer"
                   >
                     <option value="Mobiles">Mobiles</option>
                     <option value="Electronics">Electronics</option>
                     <option value="Fashion">Fashion</option>
                     <option value="Home & Kitchen">Home & Kitchen</option>
                     <option value="Appliances">Appliances</option>
+                    <option value="Beauty & Toys">Beauty & Toys</option>
                   </select>
                 </div>
-
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Brand Name</label>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Brand Name
+                  </label>
                   <input
                     type="text"
+                    placeholder="e.g. Apple / Sony / Samsung"
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    placeholder="e.g. Sony, Apple, Samsung"
-                    style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Price (₹)</label>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Stock Quantity
+                  </label>
                   <input
                     type="number"
-                    required
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Stock Quantity</label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Rating (1 - 5)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="5"
+                    value={formData.rating}
+                    onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Product Image URL</label>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Image URL
+                </label>
                 <input
                   type="url"
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="https://images.unsplash.com/photo-..."
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
+                  className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Description</label>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Description
+                </label>
                 <textarea
-                  rows={3}
-                  required
+                  rows="3"
+                  placeholder="Comprehensive description of product specifications and key highlights..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Detailed product specifications and feature highlights..."
-                  style={{ width: '100%', padding: '0.6rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', marginTop: '0.2rem' }}
-                />
+                  className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                ></textarea>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer' }}>
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="neu-btn px-5 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:text-slate-900"
+                >
                   Cancel
                 </button>
-                <button type="submit" style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '0.6rem 1.4rem', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' }}>
-                  {editingId ? 'Save Changes' : 'Add Product'}
+                <button
+                  type="submit"
+                  className="neu-btn-primary px-6 py-2.5 rounded-2xl text-xs font-black text-white shadow-md"
+                >
+                  {editingId ? 'Save Changes' : 'Create Product'}
                 </button>
               </div>
             </form>

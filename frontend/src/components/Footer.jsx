@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Truck, RotateCcw, Headphones, Lock } from 'lucide-react';
+import { ShieldCheck, Truck, RotateCcw, Headphones, Lock, ArrowUp, ShoppingBag, Sparkles } from 'lucide-react';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -8,95 +8,99 @@ const Footer = () => {
   };
 
   return (
-    <footer style={{ background: '#131921', color: '#e2e8f0', marginTop: 'auto' }}>
+    <footer className="neu-bg border-t border-slate-300/70 text-slate-700 mt-auto font-['Inter']">
       {/* Back to top banner */}
       <div
         onClick={scrollToTop}
-        style={{
-          background: '#232f3e',
-          textAlign: 'center',
-          padding: '0.8rem',
-          cursor: 'pointer',
-          fontSize: '0.88rem',
-          fontWeight: '600',
-          color: '#ffffff'
-        }}
+        className="neu-card mx-4 sm:mx-8 my-6 p-3 rounded-2xl text-center cursor-pointer text-xs font-black text-slate-700 hover:text-amber-600 flex items-center justify-center gap-2 transition-all shadow-sm select-none"
       >
-        Back to top ↑
+        <ArrowUp className="w-4 h-4 text-amber-500" />
+        <span>Back to top</span>
       </div>
 
       {/* Value props banner */}
-      <div style={{ background: '#0f172a', padding: '1.5rem 2rem', borderBottom: '1px solid #1e293b' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', textAlign: 'center' }}>
-          <div>
-            <Truck size={28} color="#febd69" style={{ margin: '0 auto 0.4rem auto' }} />
-            <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>Free NexusCart Delivery</h4>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>On orders over ₹499</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-b border-slate-300/60">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="neu-card p-5 rounded-2xl text-center space-y-2">
+            <div className="w-10 h-10 rounded-xl neu-btn-circle text-amber-500 flex items-center justify-center mx-auto">
+              <Truck className="w-5 h-5" />
+            </div>
+            <h4 className="font-black text-xs text-slate-900">Free NexusCart Delivery</h4>
+            <p className="text-[11px] text-slate-500">On all eligible orders over ₹499</p>
           </div>
-          <div>
-            <RotateCcw size={28} color="#febd69" style={{ margin: '0 auto 0.4rem auto' }} />
-            <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>10 Days Easy Return</h4>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Hassle free replacement guarantee</p>
+
+          <div className="neu-card p-5 rounded-2xl text-center space-y-2">
+            <div className="w-10 h-10 rounded-xl neu-btn-circle text-emerald-500 flex items-center justify-center mx-auto">
+              <RotateCcw className="w-5 h-5" />
+            </div>
+            <h4 className="font-black text-xs text-slate-900">10 Days Easy Return</h4>
+            <p className="text-[11px] text-slate-500">Hassle free replacement guarantee</p>
           </div>
-          <div>
-            <Lock size={28} color="#febd69" style={{ margin: '0 auto 0.4rem auto' }} />
-            <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>100% Safe Payments</h4>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>UPI, Cards, EMI & COD supported</p>
+
+          <div className="neu-card p-5 rounded-2xl text-center space-y-2">
+            <div className="w-10 h-10 rounded-xl neu-btn-circle text-blue-500 flex items-center justify-center mx-auto">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h4 className="font-black text-xs text-slate-900">100% Safe Payments</h4>
+            <p className="text-[11px] text-slate-500">UPI, Cards, EMI & Clover Gateway</p>
           </div>
-          <div>
-            <Headphones size={28} color="#febd69" style={{ margin: '0 auto 0.4rem auto' }} />
-            <h4 style={{ fontSize: '0.95rem', color: '#fff' }}>24x7 Customer Support</h4>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Dedicated customer helpline</p>
+
+          <div className="neu-card p-5 rounded-2xl text-center space-y-2">
+            <div className="w-10 h-10 rounded-xl neu-btn-circle text-purple-500 flex items-center justify-center mx-auto">
+              <Headphones className="w-5 h-5" />
+            </div>
+            <h4 className="font-black text-xs text-slate-900">24x7 Customer Helpline</h4>
+            <p className="text-[11px] text-slate-500">Dedicated assistance anytime</p>
           </div>
         </div>
       </div>
 
       {/* Main footer links */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '2rem' }}>
-        <div>
-          <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Get to Know Us</h4>
-          <ul style={{ listStyle: 'none', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '2' }}>
-            <li>About NexusCart</li>
-            <li>Careers & Press</li>
-            <li>Corporate Responsibility</li>
-            <li>NexusCart Prime Marketplace</li>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-xs font-semibold">
+        <div className="space-y-3">
+          <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Get to Know Us</h4>
+          <ul className="space-y-2 text-slate-500">
+            <li><Link to="/" className="hover:text-amber-600 transition-colors">About NexusCart</Link></li>
+            <li><Link to="/" className="hover:text-amber-600 transition-colors">Careers & Press</Link></li>
+            <li><Link to="/" className="hover:text-amber-600 transition-colors">Sustainability Initiatives</Link></li>
+            <li><Link to="/" className="hover:text-amber-600 transition-colors">Prime Marketplace</Link></li>
           </ul>
         </div>
 
-        <div>
-          <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Connect with Us</h4>
-          <ul style={{ listStyle: 'none', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '2' }}>
-            <li>Facebook</li>
-            <li>Twitter / X</li>
-            <li>Instagram</li>
-            <li>Official Blog</li>
+        <div className="space-y-3">
+          <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Connect with Us</h4>
+          <ul className="space-y-2 text-slate-500">
+            <li><a href="#" className="hover:text-amber-600 transition-colors">Facebook Community</a></li>
+            <li><a href="#" className="hover:text-amber-600 transition-colors">Twitter / X Official</a></li>
+            <li><a href="#" className="hover:text-amber-600 transition-colors">Instagram Feed</a></li>
+            <li><a href="#" className="hover:text-amber-600 transition-colors">Engineering Blog</a></li>
           </ul>
         </div>
 
-        <div>
-          <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Make Money with Us</h4>
-          <ul style={{ listStyle: 'none', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '2' }}>
-            <li>Sell on NexusCart</li>
-            <li>Protect & Build Your Brand</li>
-            <li>Become an Affiliate</li>
-            <li>Fulfillment by NexusCart</li>
+        <div className="space-y-3">
+          <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Make Money with Us</h4>
+          <ul className="space-y-2 text-slate-500">
+            <li><Link to="/admin" className="hover:text-amber-600 transition-colors">Sell on NexusCart</Link></li>
+            <li><Link to="/admin" className="hover:text-amber-600 transition-colors">Merchant Portal</Link></li>
+            <li><Link to="/admin/clover" className="hover:text-amber-600 transition-colors">Clover Integration</Link></li>
+            <li><Link to="/admin" className="hover:text-amber-600 transition-colors">Fulfillment Center</Link></li>
           </ul>
         </div>
 
-        <div>
-          <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Let Us Help You</h4>
-          <ul style={{ listStyle: 'none', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '2' }}>
-            <li>COVID-19 and Shopping</li>
-            <li>Your Account & Orders</li>
-            <li>Returns & Refund Center</li>
-            <li>100% Purchase Protection</li>
+        <div className="space-y-3">
+          <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Let Us Help You</h4>
+          <ul className="space-y-2 text-slate-500">
+            <li><Link to="/orders" className="hover:text-amber-600 transition-colors">Your Account & Orders</Link></li>
+            <li><Link to="/orders" className="hover:text-amber-600 transition-colors">Delivery & Tracking</Link></li>
+            <li><Link to="/orders" className="hover:text-amber-600 transition-colors">Returns & Refunds</Link></li>
+            <li><Link to="/profile" className="hover:text-amber-600 transition-colors">Manage Saved Profile</Link></li>
           </ul>
         </div>
       </div>
 
       {/* Copyright */}
-      <div style={{ textAlign: 'center', borderTop: '1px solid #232f3e', padding: '1.5rem', fontSize: '0.82rem', color: '#64748b' }}>
-        © 2026 NexusCart Inc. All rights reserved. Your Ultimate Shopping Destination.
+      <div className="text-center border-t border-slate-300/60 py-6 text-xs text-slate-500 font-bold">
+        © 2026 NexusCart Inc. All rights reserved. Built with Neumorphic Soft-UI Design System.
       </div>
     </footer>
   );

@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, MapPin, User, Heart, ShoppingCart, ShieldCheck, LogOut, Package, Sparkles } from 'lucide-react';
+import {
+  ShoppingBag,
+  Search,
+  MapPin,
+  User,
+  Heart,
+  ShoppingCart,
+  ShieldCheck,
+  LogOut,
+  Package,
+  Sparkles,
+  X,
+  Check
+} from 'lucide-react';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -9,6 +22,12 @@ const Navbar = ({ categories = [], onSearch }) => {
   const { cartCount, wishlist } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [deliveryLocation, setDeliveryLocation] = useState({
+    city: 'Bengaluru',
+    pincode: '560001'
+  });
+  const [pincodeInput, setPincodeInput] = useState('');
   const navigate = useNavigate();
 
   const isAdmin = isUserAdmin(user?.email) || user?.role === 'admin';
@@ -19,6 +38,18 @@ const Navbar = ({ categories = [], onSearch }) => {
       onSearch(searchTerm, selectedCategory);
     }
     navigate(`/?search=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(selectedCategory)}`);
+  };
+
+  const handleUpdatePincode = (e) => {
+    e.preventDefault();
+    if (pincodeInput.trim().length >= 6) {
+      setDeliveryLocation({
+        city: pincodeInput.startsWith('560') ? 'Bengaluru' : pincodeInput.startsWith('400') ? 'Mumbai' : pincodeInput.startsWith('110') ? 'Delhi' : 'Karnataka',
+        pincode: pincodeInput.trim()
+      });
+      setShowLocationModal(false);
+      setPincodeInput('');
+    }
   };
 
   return (
@@ -42,12 +73,16 @@ const Navbar = ({ categories = [], onSearch }) => {
             </div>
           </Link>
 
-          {/* Delivery Badge (Desktop) - Inset Soft UI */}
-          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs">
+          {/* Delivery Badge (Desktop) - Inset Soft UI - Clickable */}
+          <div
+            onClick={() => setShowLocationModal(true)}
+            className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all"
+            title="Click to change delivery pincode"
+          >
             <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
             <div>
               <div className="text-[10px] text-slate-500 font-medium">Deliver to {user ? user.name.split(' ')[0] : 'Guest'}</div>
-              <div className="font-extrabold text-slate-700">Bengaluru 560001</div>
+              <div className="font-extrabold text-slate-700">{deliveryLocation.city} {deliveryLocation.pincode}</div>
             </div>
           </div>
 
@@ -64,6 +99,7 @@ const Navbar = ({ categories = [], onSearch }) => {
               <option value="Fashion">Fashion</option>
               <option value="Home & Kitchen">Home Utilities</option>
               <option value="Appliances">Appliances</option>
+              <option value="Beauty & Toys">Beauty & Toys</option>
             </select>
 
             <input
@@ -150,8 +186,48 @@ const Navbar = ({ categories = [], onSearch }) => {
             </button>
           </form>
         </div>
-
       </div>
+
+      {/* LOCATION SELECTOR MODAL */}
+      {showLocationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="neu-card p-6 rounded-3xl w-full max-w-sm space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-amber-500" />
+                <h3 className="text-sm font-black text-slate-900">Choose Delivery Location</h3>
+              </div>
+              <button
+                onClick={() => setShowLocationModal(false)}
+                className="neu-btn w-7 h-7 rounded-lg flex items-center justify-center text-slate-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Enter your 6-digit delivery pincode to check product availability and fast shipping options.
+            </p>
+
+            <form onSubmit={handleUpdatePincode} className="space-y-3">
+              <input
+                type="text"
+                placeholder="e.g. 560001, 400001, 110001"
+                maxLength="6"
+                value={pincodeInput}
+                onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, ''))}
+                className="neu-input w-full px-4 py-2.5 text-xs font-black text-slate-800 tracking-wider"
+              />
+              <button
+                type="submit"
+                className="w-full neu-btn-primary py-2.5 rounded-xl text-xs font-black text-white flex items-center justify-center gap-2"
+              >
+                <Check className="w-4 h-4" /> Apply Pincode
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

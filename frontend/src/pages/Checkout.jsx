@@ -1,6 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, CreditCard, ShieldCheck, CheckCircle, Lock, X, QrCode, Smartphone, Building2, ExternalLink } from 'lucide-react';
+import {
+  MapPin,
+  CreditCard,
+  ShieldCheck,
+  CheckCircle,
+  Lock,
+  X,
+  QrCode,
+  Smartphone,
+  Building2,
+  ExternalLink,
+  ArrowRight,
+  Sparkles,
+  ShoppingBag
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -51,7 +65,6 @@ const Checkout = () => {
 
     setLoading(true);
     try {
-      // Step 1: Create Payment Intent with simulated gateway
       const intentRes = await api.createPaymentIntent(cartTotal, `rec_${Date.now()}`);
       if (intentRes.success) {
         setPaymentIntent(intentRes);
@@ -78,7 +91,6 @@ const Checkout = () => {
           payId = cloverRes.chargeId;
         }
       } else {
-        // Step 2: Verify Payment Transaction with Firebase
         await api.verifyPayment({
           razorpay_payment_id: payId,
           paymentIntentId: paymentIntent?.clientSecret || `pi_${Date.now()}`,
@@ -86,7 +98,6 @@ const Checkout = () => {
         });
       }
 
-      // Step 3: Commit Order Document into Firebase Firestore
       const orderPayload = {
         userId: user ? user.uid || user.id : 'usr-guest',
         customerName: shippingAddress.fullName,
@@ -107,7 +118,6 @@ const Checkout = () => {
         cloverMerchantId: CLOVER_CONFIG.merchantId
       };
 
-      // Call Firestore database service
       const res = await api.createOrder(orderPayload);
       clearCart();
       setShowPaymentModal(false);
@@ -124,447 +134,364 @@ const Checkout = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1050px', margin: '2rem auto', padding: '0 1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-        <ShieldCheck size={32} color="#2874f0" />
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Inter'] space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-2xl neu-btn-circle text-amber-500 flex items-center justify-center shrink-0">
+          <Lock className="w-6 h-6" />
+        </div>
         <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>NexusCart Secure Checkout</h1>
-          <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Complete your order with Razorpay & Firebase Firestore</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-['Outfit']">
+            Secure Checkout
+          </h1>
+          <p className="text-xs font-semibold text-slate-500 mt-0.5">
+            256-bit encrypted checkout with instant payment verification
+          </p>
         </div>
       </div>
 
-      <form onSubmit={handleInitiatePayment} style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Section 1: Delivery Address */}
-          <div style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
-              <MapPin size={20} color="#2874f0" /> 1. Shipping Address
-            </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        {/* Left 2 Columns: Shipping Address & Payment Selector */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Shipping Address Card */}
+          <div className="neu-card p-6 sm:p-8 rounded-3xl space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-amber-500" />
+                <h3 className="text-base font-black text-slate-900 font-['Outfit']">
+                  1. Shipping & Delivery Address
+                </h3>
+              </div>
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#475569' }}>Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={shippingAddress.fullName}
-                  onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
+            <form id="shipping-form" onSubmit={handleInitiatePayment} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={shippingAddress.fullName}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Mobile Phone *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={shippingAddress.phone}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
               </div>
 
               <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#475569' }}>Phone Number</label>
-                <input
-                  type="text"
-                  required
-                  value={shippingAddress.phone}
-                  onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
-              </div>
-
-              <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#475569' }}>Street Address / Flat No.</label>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Street Address & Flat / House No *
+                </label>
                 <input
                   type="text"
                   required
                   value={shippingAddress.address}
                   onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#475569' }}>City</label>
-                <input
-                  type="text"
-                  required
-                  value={shippingAddress.city}
-                  onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#475569' }}>Postal Code / PIN</label>
-                <input
-                  type="text"
-                  required
-                  value={shippingAddress.postalCode}
-                  onChange={(e) => setShippingAddress({ ...shippingAddress, postalCode: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Payment Mode */}
-          <div style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
-              <CreditCard size={20} color="#2874f0" /> 2. Payment Gateway Mode
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {[
-                { id: 'clover', name: '🍀 Clover Secure eCommerce Pay (iFrame / Card)', badge: 'Sandbox Live' },
-                { id: 'upi', name: 'UPI QR Code (Google Pay, PhonePe, Paytm)', badge: 'Instant' },
-                { id: 'card', name: 'Credit / Debit Card (Visa, Mastercard, RuPay)', badge: 'Secure 256-bit' },
-                { id: 'netbanking', name: 'NetBanking / Direct Bank Transfer', badge: 'All Banks' }
-              ].map((item) => (
-                <label
-                  key={item.id}
-                  onClick={() => {
-                    setPaymentMethod(item.name);
-                    setPaymentTab(item.id);
-                  }}
-                  style={{
-                    padding: '0.85rem 1rem',
-                    borderRadius: '8px',
-                    border: (paymentTab === item.id || paymentMethod === item.name) ? '2px solid #16a34a' : '1px solid #cbd5e1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    background: (paymentTab === item.id || paymentMethod === item.name) ? '#f0fdf4' : '#fff',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                    <input
-                      type="radio"
-                      name="payMethod"
-                      checked={paymentTab === item.id || paymentMethod === item.name}
-                      onChange={() => {
-                        setPaymentMethod(item.name);
-                        setPaymentTab(item.id);
-                      }}
-                    />
-                    <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}>{item.name}</span>
-                  </div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '700', padding: '0.2rem 0.5rem', borderRadius: '4px', background: item.id === 'clover' ? '#dcfce7' : '#f1f5f9', color: item.id === 'clover' ? '#166534' : '#475569' }}>
-                    {item.badge}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Summary Sidebar */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0', height: 'fit-content', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.6rem' }}>
-            Order Summary
-          </h3>
-
-          <div style={{ marginBottom: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
-            {cartItems.map((item) => (
-              <div key={item.id || item._id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
-                <span style={{ color: '#475569' }}>{item.quantity}x {(item.name || item.title).substring(0, 24)}...</span>
-                <span style={{ fontWeight: '700' }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '0.8rem', display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: '800' }}>
-            <span>Total Payable:</span>
-            <span style={{ color: '#2874f0' }}>₹{cartTotal.toLocaleString('en-IN')}</span>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              background: 'linear-gradient(180deg, #f8e3a0 0%, #eab308 100%)',
-              border: '1px solid #d97706',
-              padding: '0.85rem',
-              borderRadius: '6px',
-              fontWeight: '800',
-              fontSize: '1rem',
-              color: '#0f172a',
-              marginTop: '1.5rem',
-              cursor: 'pointer'
-            }}
-          >
-            {loading ? 'Initializing Gateway...' : 'Proceed to Pay Now'}
-          </button>
-        </div>
-      </form>
-
-      {/* Razorpay & UPI QR Code Interactive Payment Modal */}
-      {showPaymentModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', border: '1px solid #cbd5e1', padding: '2rem', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
-            
-            {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', paddingBottom: '0.8rem', borderBottom: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '800', fontSize: '1.1rem', color: '#0f172a' }}>
-                <ShieldCheck color="#2874f0" size={24} /> Razorpay & Firebase Gateway
-              </div>
-              <button onClick={() => setShowPaymentModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Total Amount Badge */}
-            <div style={{ background: '#eff6ff', padding: '1rem', borderRadius: '10px', marginBottom: '1.2rem', textAlign: 'center', border: '1px solid #bfdbfe' }}>
-              <div style={{ fontSize: '0.82rem', color: '#1e40af', fontWeight: '600' }}>Total Amount to Pay</div>
-              <div style={{ fontSize: '1.9rem', fontWeight: '800', color: '#2874f0' }}>
-                ₹{cartTotal.toLocaleString('en-IN')}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                Order ID: {paymentIntent?.orderId || `pay_${Math.floor(100000 + Math.random() * 900000)}`}
-              </div>
-            </div>
-
-            {/* Payment Method Switcher Tabs */}
-            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', marginBottom: '1.2rem', gap: '3px' }}>
-              <button
-                type="button"
-                onClick={() => setPaymentTab('clover')}
-                style={{
-                  flex: 1.2,
-                  padding: '0.55rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '700',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  background: paymentTab === 'clover' ? '#ffffff' : 'transparent',
-                  color: paymentTab === 'clover' ? '#16a34a' : '#64748b',
-                  boxShadow: paymentTab === 'clover' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <span>🍀</span> Clover Pay
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentTab('upi')}
-                style={{
-                  flex: 1,
-                  padding: '0.55rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '700',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  background: paymentTab === 'upi' ? '#ffffff' : 'transparent',
-                  color: paymentTab === 'upi' ? '#2874f0' : '#64748b',
-                  boxShadow: paymentTab === 'upi' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <QrCode size={15} /> UPI
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentTab('card')}
-                style={{
-                  flex: 1,
-                  padding: '0.55rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '700',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  background: paymentTab === 'card' ? '#ffffff' : 'transparent',
-                  color: paymentTab === 'card' ? '#2874f0' : '#64748b',
-                  boxShadow: paymentTab === 'card' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <CreditCard size={15} /> Card
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentTab('netbanking')}
-                style={{
-                  flex: 1,
-                  padding: '0.55rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '700',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  background: paymentTab === 'netbanking' ? '#ffffff' : 'transparent',
-                  color: paymentTab === 'netbanking' ? '#2874f0' : '#64748b',
-                  boxShadow: paymentTab === 'netbanking' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <Building2 size={15} /> NetBank
-              </button>
-            </div>
-
-            {/* Tab 0: Clover eComm Iframe & Hosted Fields */}
-            {paymentTab === 'clover' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '28px', height: '28px', background: '#16a34a', color: '#fff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.85rem' }}>
-                      🍀
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#166534' }}>Clover eComm Gateway</div>
-                      <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Merchant ID: <code>{CLOVER_CONFIG.merchantId}</code></div>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '0.7rem', background: '#22c55e', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: '12px', fontWeight: '700' }}>
-                    SANDBOX LIVE
-                  </span>
-                </div>
-
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.9rem', background: '#f8fafc' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#475569' }}>Clover Hosted Card Fields</span>
-                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Token: <code>{CLOVER_CONFIG.publicToken.substring(0, 10)}...</code></span>
-                  </div>
-
-                  <div style={{ marginBottom: '0.6rem' }}>
-                    <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>Cardholder Name</label>
-                    <input
-                      type="text"
-                      value={cardDetails.name}
-                      onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                      style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff' }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '0.6rem' }}>
-                    <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>Card Number (Clover Tokenized)</label>
-                    <input
-                      type="text"
-                      value={cardDetails.number}
-                      onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                      style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff', fontFamily: 'monospace' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>Expiry</label>
-                      <input
-                        type="text"
-                        value={cardDetails.expiry}
-                        onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                        style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>CVV</label>
-                      <input
-                        type="password"
-                        value={cardDetails.cvv}
-                        onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
-                        style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff' }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}>
-                  <ShieldCheck size={14} color="#16a34a" /> 256-bit SSL encrypted directly with Clover Sandbox Gateway
-                </div>
-              </div>
-            )}
-
-            {/* Tab 1: UPI QR Code & VPA */}
-            {paymentTab === 'upi' && (
-              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', padding: '1.2rem', borderRadius: '12px', display: 'inline-block', marginBottom: '0.8rem' }}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=nexuscart@upi%26pn=NexusCart%26am=${cartTotal}`}
-                    alt="Scan UPI QR Code to Pay"
-                    style={{ width: '140px', height: '140px', display: 'block', margin: '0 auto' }}
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem', fontWeight: '700' }}>
-                    Scan with GPay, PhonePe, Paytm
-                  </div>
-                </div>
-
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', textAlign: 'left' }}>
-                    Or Enter VPA / UPI ID:
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    City
                   </label>
                   <input
                     type="text"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="username@upi"
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                    required
+                    value={shippingAddress.city}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={shippingAddress.state}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Pincode
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={shippingAddress.postalCode}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, postalCode: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                   />
                 </div>
               </div>
-            )}
+            </form>
+          </div>
 
-            {/* Tab 2: Credit / Debit Card Form */}
-            {paymentTab === 'card' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>Cardholder Name</label>
-                  <input
-                    type="text"
-                    value={cardDetails.name}
-                    onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                  />
+          {/* Payment Method Card */}
+          <div className="neu-card p-6 sm:p-8 rounded-3xl space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+              <CreditCard className="w-5 h-5 text-amber-500" />
+              <h3 className="text-base font-black text-slate-900 font-['Outfit']">
+                2. Select Payment Gateway
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentTab('clover')}
+                className={`p-3 rounded-2xl flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                  paymentTab === 'clover'
+                    ? 'neu-card-inset text-emerald-700 font-black shadow-inner border-2 border-emerald-500/50'
+                    : 'neu-btn text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="text-xl">🍀</span>
+                <span className="text-[11px] font-black">Clover Gateway</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentTab('upi')}
+                className={`p-3 rounded-2xl flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                  paymentTab === 'upi'
+                    ? 'neu-card-inset text-amber-700 font-black shadow-inner border-2 border-amber-500/50'
+                    : 'neu-btn text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <QrCode className="w-5 h-5 text-amber-500" />
+                <span className="text-[11px] font-black">UPI QR Code</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentTab('card')}
+                className={`p-3 rounded-2xl flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                  paymentTab === 'card'
+                    ? 'neu-card-inset text-amber-700 font-black shadow-inner border-2 border-amber-500/50'
+                    : 'neu-btn text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <CreditCard className="w-5 h-5 text-blue-500" />
+                <span className="text-[11px] font-black">Credit / Debit</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentTab('netbanking')}
+                className={`p-3 rounded-2xl flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                  paymentTab === 'netbanking'
+                    ? 'neu-card-inset text-amber-700 font-black shadow-inner border-2 border-amber-500/50'
+                    : 'neu-btn text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Building2 className="w-5 h-5 text-purple-500" />
+                <span className="text-[11px] font-black">NetBanking</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column: Order Summary & Place Order Button */}
+        <div className="space-y-6">
+          <div className="neu-card p-6 rounded-3xl space-y-4">
+            <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider pb-3 border-b border-slate-200">
+              Order Review ({cartItems.length} Items)
+            </h3>
+
+            {/* Cart Items List */}
+            <div className="space-y-2.5 max-h-56 overflow-y-auto">
+              {cartItems.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img
+                      src={item.image || (item.images ? item.images[0] : '')}
+                      alt={item.name || item.title}
+                      className="w-10 h-10 object-contain rounded-xl neu-card-inset p-1 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="font-bold text-slate-900 line-clamp-1">{item.name || item.title}</div>
+                      <div className="text-[10px] text-slate-400">Qty: {item.quantity || 1}</div>
+                    </div>
+                  </div>
+                  <span className="font-black text-slate-900 shrink-0">
+                    ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
+                  </span>
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>Card Number</label>
+              ))}
+            </div>
+
+            <div className="space-y-2 pt-3 border-t border-slate-200 text-xs font-bold text-slate-600">
+              <div className="flex justify-between">
+                <span>Items Subtotal:</span>
+                <span className="text-slate-900">₹{cartTotal.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery Charges:</span>
+                <span className="text-emerald-600 font-black">FREE</span>
+              </div>
+              <div className="pt-2 border-t border-slate-300 flex justify-between text-base font-black text-slate-900">
+                <span>Total Payable:</span>
+                <span className="text-amber-600">₹{cartTotal.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleInitiatePayment}
+              disabled={loading}
+              className="w-full neu-btn-primary py-3.5 rounded-2xl text-xs font-black text-white flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
+            >
+              <Lock className="w-4 h-4" />
+              <span>{loading ? 'Preparing Gateway...' : `Proceed to Pay ₹${cartTotal.toLocaleString('en-IN')}`}</span>
+            </button>
+
+            <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold text-slate-400 pt-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Clover Certified Merchant Security</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* PAYMENT GATEWAY MODAL */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm font-['Inter']">
+          <div className="neu-card p-6 sm:p-8 rounded-3xl w-full max-w-md space-y-6 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🍀</span>
+                <h3 className="text-base font-black text-slate-900">
+                  {paymentTab === 'clover' ? 'Clover Live Payment Gateway' : paymentTab === 'upi' ? 'UPI QR Payment' : paymentTab === 'card' ? 'Card Checkout' : 'NetBanking'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="neu-btn w-8 h-8 rounded-xl flex items-center justify-center text-slate-500"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Total Amount Pill */}
+            <div className="neu-card-inset p-3 rounded-2xl flex items-center justify-between text-xs">
+              <span className="text-slate-500 font-bold">Transaction Amount:</span>
+              <span className="font-black text-base text-amber-600">₹{cartTotal.toLocaleString('en-IN')}</span>
+            </div>
+
+            {/* Tab Specific Gateway Form */}
+            {paymentTab === 'clover' && (
+              <div className="neu-card-inset p-4 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-600">Merchant Account:</span>
+                  <span className="font-mono font-bold text-amber-600">{CLOVER_CONFIG.merchantId}</span>
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Authenticated with Clover sandbox token <code className="font-mono text-emerald-600 font-bold">{CLOVER_CONFIG.publicToken.substring(0, 10)}...</code>
+                </div>
+                <div className="pt-2">
                   <input
                     type="text"
                     value={cardDetails.number}
                     onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                    placeholder="Card Number"
+                    className="neu-input w-full px-3 py-2 text-xs font-mono text-slate-800 mb-2"
                   />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>Expiry Date</label>
+                  <div className="grid grid-cols-2 gap-2">
                     <input
                       type="text"
                       value={cardDetails.expiry}
                       onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                      style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                      placeholder="MM/YY"
+                      className="neu-input w-full px-3 py-2 text-xs text-slate-800"
                     />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>CVV</label>
                     <input
                       type="password"
                       value={cardDetails.cvv}
                       onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
-                      style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                      placeholder="CVV"
+                      className="neu-input w-full px-3 py-2 text-xs text-slate-800"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Tab 3: NetBanking */}
+            {paymentTab === 'upi' && (
+              <div className="text-center space-y-3">
+                <div className="neu-card-inset p-4 rounded-2xl inline-block">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=nexuscart@upi%26pn=NexusCart%26am=${cartTotal}`}
+                    alt="Scan UPI QR Code"
+                    className="w-36 h-36 mx-auto"
+                  />
+                  <div className="text-[11px] font-bold text-slate-500 mt-2">
+                    Scan with GPay, PhonePe, or Paytm
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {paymentTab === 'card' && (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={cardDetails.number}
+                  onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
+                  placeholder="Card Number"
+                  className="neu-input w-full px-3 py-2.5 text-xs font-mono text-slate-800"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={cardDetails.expiry}
+                    onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
+                    placeholder="MM/YY"
+                    className="neu-input w-full px-3 py-2 text-xs text-slate-800"
+                  />
+                  <input
+                    type="password"
+                    value={cardDetails.cvv}
+                    onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
+                    placeholder="CVV"
+                    className="neu-input w-full px-3 py-2 text-xs text-slate-800"
+                  />
+                </div>
+              </div>
+            )}
+
             {paymentTab === 'netbanking' && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.4rem' }}>
-                  Select Bank for Direct Debit:
+              <div>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Select Banking Institution
                 </label>
                 <select
                   value={selectedBank}
                   onChange={(e) => setSelectedBank(e.target.value)}
-                  style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: '600' }}
+                  className="neu-input w-full px-4 py-2.5 text-xs font-bold text-slate-800 cursor-pointer"
                 >
                   <option value="HDFC Bank">HDFC Bank</option>
                   <option value="ICICI Bank">ICICI Bank</option>
@@ -575,34 +502,14 @@ const Checkout = () => {
               </div>
             )}
 
-            {/* Action Pay Button */}
+            {/* Pay Button */}
             <button
               onClick={handleConfirmGatewayPayment}
               disabled={paymentProcessing}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                color: '#ffffff',
-                border: 'none',
-                padding: '0.9rem',
-                borderRadius: '8px',
-                fontWeight: '800',
-                fontSize: '1.05rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 12px rgba(22,163,74,0.3)'
-              }}
+              className="w-full neu-btn-primary py-3.5 rounded-2xl text-xs font-black text-white flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
-              {paymentProcessing ? (
-                'Committing Order to Firestore...'
-              ) : (
-                <>
-                  <Lock size={18} /> Pay ₹{cartTotal.toLocaleString('en-IN')} & Commit Order
-                </>
-              )}
+              <CheckCircle className="w-4 h-4" />
+              <span>{paymentProcessing ? 'Processing Payment...' : `Authorize & Pay ₹${cartTotal.toLocaleString('en-IN')}`}</span>
             </button>
           </div>
         </div>

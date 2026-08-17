@@ -1,32 +1,126 @@
-import React from 'react';
-import { Heart, ShoppingBag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, ShoppingBag, Trash2, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { initialProducts } from '../data/mockData';
+import { api } from '../services/api';
+import { fetchLiveMarketStoreProducts } from '../services/liveMarketService';
+import { Link } from 'react-router-dom';
 
 const WishlistPage = () => {
-  const { wishlist } = useCart();
-  const wishlistedProducts = initialProducts.filter(p => wishlist.includes(p.id));
+  const { wishlist, toggleWishlist, addToCart } = useCart();
+  const [allProducts, setAllProducts] = useState(initialProducts);
+  const [toast, setToast] = useState('');
+
+  useEffect(() => {
+    loadAllProducts();
+  }, []);
+
+  const loadAllProducts = async () => {
+    try {
+      const [apiRes, liveRes] = await Promise.allSettled([
+        api.getProducts(),
+        fetchLiveMarketStoreProducts()
+      ]);
+
+      let pool = [...initialProducts];
+      if (apiRes.status === 'fulfilled' && apiRes.value?.products?.length > 0) {
+        pool = [...pool, ...apiRes.value.products];
+      }
+      if (liveRes.status === 'fulfilled' && liveRes.value?.products?.length > 0) {
+        pool = [...pool, ...liveRes.value.products];
+      }
+
+      // Deduplicate by id
+      const uniqueMap = new Map();
+      pool.forEach(p => {
+        const id = p.id || p._id;
+        if (id && !uniqueMap.has(id)) {
+          uniqueMap.set(id, p);
+        }
+      });
+      setAllProducts(Array.from(uniqueMap.values()));
+    } catch (e) {
+      setAllProducts(initialProducts);
+    }
+  };
+
+  const wishlistedProducts = allProducts.filter(p => {
+    const pId = p.id || p._id;
+    return wishlist.includes(pId);
+  });
+
+  const handleMoveAllToCart = () => {
+    if (wishlistedProducts.length === 0) return;
+    wishlistedProducts.forEach(prod => {
+      addToCart(prod, 1);
+    });
+    setToast(`🎉 Moved all ${wishlistedProducts.length} items to your Shopping Cart!`);
+    setTimeout(() => setToast(''), 4000);
+  };
 
   return (
-    <div style={{ maxWidth: '1240px', margin: '2rem auto', padding: '0 1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-        <Heart size={28} color="#ef4444" fill="#ef4444" />
-        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>
-          My Wishlist ({wishlistedProducts.length})
-        </h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Inter'] space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl neu-btn-circle text-red-500 flex items-center justify-center shrink-0">
+            <Heart className="w-6 h-6 fill-red-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-['Outfit']">
+              My Saved Wishlist ({wishlistedProducts.length})
+            </h1>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Saved items available for quick checkout and purchase
+            </p>
+          </div>
+        </div>
+
+        {wishlistedProducts.length > 0 && (
+          <button
+            onClick={handleMoveAllToCart}
+            className="neu-btn-primary px-5 py-3 rounded-2xl text-xs font-black text-white flex items-center gap-2 cursor-pointer shadow-md self-start sm:self-auto"
+          >
+            <ShoppingBag className="w-4 h-4" /> Move All to Cart
+          </button>
+        )}
       </div>
 
+      {/* Toast Feedback */}
+      {toast && (
+        <div className="neu-card p-4 rounded-2xl text-xs font-black text-emerald-800 bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 shadow-sm animate-float">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{toast}</span>
+        </div>
+      )}
+
+      {/* Wishlist Items Grid */}
       {wishlistedProducts.length === 0 ? (
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '4rem', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <Heart size={64} color="#94a3b8" style={{ margin: '0 auto 1rem auto' }} />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.4rem' }}>Your Wishlist is Empty</h2>
-          <p style={{ color: '#64748b' }}>Save products you love to view or buy them anytime.</p>
+        <div className="neu-card p-12 sm:p-16 rounded-3xl text-center space-y-4 max-w-lg mx-auto my-8">
+          <div className="w-20 h-20 rounded-full neu-card-inset flex items-center justify-center mx-auto text-slate-400">
+            <Heart className="w-10 h-10" />
+          </div>
+          <h2 className="text-xl font-black text-slate-800 font-['Outfit']">
+            Your Wishlist is Empty
+          </h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Explore 10,000+ top electronics, smartphones, and fashion deals on NexusCart and tap the heart icon on items you love.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 neu-btn-primary px-6 py-3 rounded-2xl text-xs font-black text-white shadow-md"
+            >
+              <span>Explore Marketplace Deals</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       ) : (
-        <div className="products-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {wishlistedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id || product._id} product={product} />
           ))}
         </div>
       )}

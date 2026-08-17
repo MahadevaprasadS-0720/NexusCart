@@ -189,25 +189,25 @@ const Home = () => {
           {/* Product Grid Area */}
           <main className="flex-1 w-full">
             {loading ? (
-              <div className="bg-white rounded-3xl p-16 text-center border border-slate-200/80 shadow-sm space-y-4 max-w-md mx-auto my-8">
+              <div className="neu-card rounded-3xl p-16 text-center space-y-4 max-w-md mx-auto my-8">
                 <Loader2 className="w-10 h-10 text-amber-500 animate-spin mx-auto" />
-                <h3 className="text-lg font-extrabold text-slate-900">Loading Live Product Catalog...</h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <h3 className="text-lg font-black text-slate-900">Loading Live Product Catalog...</h3>
+                <p className="text-xs text-slate-500 font-semibold">
                   Streaming 150+ real-time e-commerce products with live pricing and verified details.
                 </p>
               </div>
             ) : filteredAndSortedProducts.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-sm space-y-4 max-w-md mx-auto my-8">
-                <div className="w-16 h-16 rounded-2xl bg-amber-400/10 text-amber-600 flex items-center justify-center mx-auto">
+              <div className="neu-card rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto my-8">
+                <div className="w-16 h-16 rounded-2xl neu-card-inset text-amber-600 flex items-center justify-center mx-auto">
                   <Package className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-extrabold text-slate-900">No Matching Products Found</h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <h3 className="text-lg font-black text-slate-900">No Matching Products Found</h3>
+                <p className="text-xs text-slate-500 font-semibold">
                   We couldn't find any products matching your active filters or search terms.
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-2 bg-slate-900 hover:bg-amber-400 text-white hover:text-slate-950 font-extrabold text-xs px-5 py-3 rounded-xl transition-all shadow-md"
+                  className="neu-btn-primary inline-flex items-center gap-2 text-white font-black text-xs px-5 py-3 rounded-2xl transition-all shadow-md cursor-pointer"
                 >
                   <RefreshCw className="w-4 h-4" /> Reset Catalog Filters
                 </button>

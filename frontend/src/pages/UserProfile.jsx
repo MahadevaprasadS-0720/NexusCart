@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Mail, MapPin, Plus, Trash2, CheckCircle2, ShieldCheck, Save, Edit3, X } from 'lucide-react';
+import {
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  ShieldCheck,
+  Save,
+  Edit3,
+  X,
+  Sparkles,
+  Shield
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
@@ -30,7 +44,7 @@ const UserProfile = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [newAddress, setNewAddress] = useState({
     fullName: user ? user.name : '',
-    phone: '+91 ',
+    phone: '+91 9876543210',
     address: '',
     city: 'Bengaluru',
     state: 'Karnataka',
@@ -118,184 +132,180 @@ const UserProfile = () => {
   };
 
   return (
-    <div style={{ maxWidth: '950px', margin: '2.5rem auto', padding: '0 1.5rem' }}>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Inter'] space-y-6">
       {/* Header Profile Summary */}
-      <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: '16px', padding: '2rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-        <div style={{ width: '70px', height: '70px', background: '#2874f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: '800' }}>
+      <div className="neu-card p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center gap-6">
+        <div className="w-20 h-20 rounded-full neu-btn-circle bg-amber-500 text-white flex items-center justify-center text-2xl font-black shrink-0 shadow-sm">
           {profileData.name.charAt(0).toUpperCase()}
         </div>
 
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: '800' }}>{profileData.name}</h1>
-            <span style={{ background: profileData.role === 'admin' ? '#0284c7' : '#16a34a', color: '#fff', fontSize: '0.72rem', fontWeight: '800', padding: '2px 8px', borderRadius: '12px', textTransform: 'uppercase' }}>
-              {profileData.role === 'admin' ? 'Store Administrator' : 'Verified Customer'}
+        <div className="flex-1 text-center sm:text-left space-y-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Outfit']">
+              {profileData.name}
+            </h1>
+            <span className="neu-badge px-3 py-0.5 text-[10px] font-black text-amber-700 uppercase self-center sm:self-auto">
+              {profileData.role === 'admin' ? 'Store Administrator' : 'Verified Prime Member'}
             </span>
           </div>
-          <div style={{ fontSize: '0.88rem', color: '#94a3b8', marginTop: '4px' }}>
+          <p className="text-xs text-slate-500 font-semibold">
             {profileData.email} • {profileData.phone}
-          </div>
+          </p>
         </div>
       </div>
 
-      {/* Profile & Address Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '2px solid #e2e8f0', marginBottom: '2rem' }}>
+      {/* Tabs */}
+      <div className="flex neu-card p-1.5 rounded-2xl gap-2">
         <button
           onClick={() => setActiveTab('profile')}
-          style={{
-            padding: '0.8rem 1.4rem',
-            border: 'none',
-            background: 'none',
-            fontWeight: '800',
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-            color: activeTab === 'profile' ? '#2874f0' : '#64748b',
-            borderBottom: activeTab === 'profile' ? '3px solid #2874f0' : 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
+          className={`px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'profile'
+              ? 'neu-card-inset text-amber-700 font-black shadow-inner'
+              : 'neu-btn text-slate-600 hover:text-slate-900'
+          }`}
         >
-          <User size={18} /> Personal Details
+          <User className="w-4 h-4 text-amber-500" /> Personal Profile
         </button>
 
         <button
           onClick={() => setActiveTab('addresses')}
-          style={{
-            padding: '0.8rem 1.4rem',
-            border: 'none',
-            background: 'none',
-            fontWeight: '800',
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-            color: activeTab === 'addresses' ? '#2874f0' : '#64748b',
-            borderBottom: activeTab === 'addresses' ? '3px solid #2874f0' : 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
+          className={`px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'addresses'
+              ? 'neu-card-inset text-amber-700 font-black shadow-inner'
+              : 'neu-btn text-slate-600 hover:text-slate-900'
+          }`}
         >
-          <MapPin size={18} /> Saved Delivery Addresses ({addresses.length})
+          <MapPin className="w-4 h-4 text-blue-500" /> Saved Addresses ({addresses.length})
         </button>
       </div>
 
+      {/* Notification Toast */}
       {successMsg && (
-        <div style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', padding: '0.8rem 1.2rem', borderRadius: '8px', marginBottom: '1.5rem', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckCircle2 size={20} /> {successMsg}
+        <div className="neu-card p-4 rounded-2xl text-xs font-black text-emerald-800 bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 shadow-sm animate-float">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{successMsg}</span>
         </div>
       )}
 
-      {/* Tab 1: Personal Details */}
+      {/* TAB 1: PERSONAL DETAILS */}
       {activeTab === 'profile' && (
-        <form onSubmit={handleProfileSave} style={{ background: '#ffffff', borderRadius: '12px', padding: '2rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          <div>
-            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <User size={16} /> Full Name
-            </label>
-            <input
-              type="text"
-              required
-              value={profileData.name}
-              onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-              style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.3rem', fontSize: '0.95rem' }}
-            />
+        <form onSubmit={handleProfileSave} className="neu-card p-6 sm:p-8 rounded-3xl space-y-6">
+          <h3 className="text-base font-black text-slate-900 font-['Outfit']">
+            Edit Personal Information
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={profileData.name}
+                onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                Email Address (Read-only)
+              </label>
+              <input
+                type="email"
+                disabled
+                value={profileData.email}
+                className="neu-card-inset w-full px-4 py-2.5 text-xs font-semibold text-slate-500 cursor-not-allowed"
+              />
+            </div>
           </div>
 
-          <div>
-            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Phone size={16} /> Phone Number
-            </label>
-            <input
-              type="text"
-              required
-              value={profileData.phone}
-              onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-              style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.3rem', fontSize: '0.95rem' }}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                required
+                value={profileData.phone}
+                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                Account Role
+              </label>
+              <input
+                type="text"
+                disabled
+                value={profileData.role === 'admin' ? 'Store Administrator' : 'Verified Customer'}
+                className="neu-card-inset w-full px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider"
+              />
+            </div>
           </div>
 
-          <div style={{ gridColumn: 'span 2' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Mail size={16} /> Email Address (Managed by Firebase Auth)
-            </label>
-            <input
-              type="email"
-              disabled
-              value={profileData.email}
-              style={{ width: '100%', padding: '0.7rem', borderRadius: '6px', border: '1px solid #e2e8f0', marginTop: '0.3rem', fontSize: '0.95rem', background: '#f8fafc', color: '#64748b' }}
-            />
-          </div>
-
-          <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end' }}>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={saving}
-              style={{
-                background: 'linear-gradient(135deg, #2874f0 0%, #1e5ec8 100%)',
-                color: '#ffffff',
-                border: 'none',
-                padding: '0.75rem 1.8rem',
-                borderRadius: '8px',
-                fontWeight: '800',
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
+              className="neu-btn-primary px-6 py-2.5 rounded-2xl text-xs font-black text-white flex items-center gap-2 cursor-pointer shadow-md"
             >
-              <Save size={18} /> {saving ? 'Saving to Firestore...' : 'Save Profile Changes'}
+              <Save className="w-4 h-4" />
+              <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>
             </button>
           </div>
         </form>
       )}
 
-      {/* Tab 2: Saved Delivery Addresses */}
+      {/* TAB 2: SAVED ADDRESSES */}
       {activeTab === 'addresses' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Saved Shipping Locations</h3>
+        <div className="neu-card p-6 sm:p-8 rounded-3xl space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-black text-slate-900 font-['Outfit']">
+                Saved Shipping Addresses ({addresses.length})
+              </h3>
+              <p className="text-xs text-slate-500">Manage destination addresses for fast one-click checkout</p>
+            </div>
+
             <button
               onClick={() => setShowAddressModal(true)}
-              style={{
-                background: '#2874f0',
-                color: '#ffffff',
-                border: 'none',
-                padding: '0.65rem 1.2rem',
-                borderRadius: '8px',
-                fontWeight: '800',
-                fontSize: '0.88rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem'
-              }}
+              className="neu-btn-primary px-4 py-2 rounded-2xl text-xs font-black text-white flex items-center gap-1.5 shadow-md cursor-pointer"
             >
-              <Plus size={18} /> Add New Address
+              <Plus className="w-4 h-4" /> Add Address
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.2rem' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {addresses.map((addr) => (
-              <div key={addr.id} style={{ background: '#ffffff', borderRadius: '12px', padding: '1.2rem', border: addr.isDefault ? '2px solid #2874f0' : '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', position: 'relative' }}>
+              <div
+                key={addr.id}
+                className="neu-card p-5 rounded-2xl flex flex-col justify-between space-y-3 relative"
+              >
                 {addr.isDefault && (
-                  <span style={{ position: 'absolute', top: '12px', right: '12px', background: '#eff6ff', color: '#2874f0', fontSize: '0.72rem', fontWeight: '800', padding: '2px 8px', borderRadius: '12px' }}>
-                    Default Address
+                  <span className="absolute top-3 right-3 neu-badge px-2.5 py-0.5 text-[9px] font-black text-amber-600 uppercase">
+                    Default
                   </span>
                 )}
-                <div style={{ fontWeight: '800', fontSize: '1rem', color: '#0f172a', marginBottom: '0.4rem' }}>{addr.fullName}</div>
-                <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.5' }}>
-                  <div>{addr.address}</div>
-                  <div>{addr.city}, {addr.state} - {addr.postalCode}</div>
-                  <div style={{ marginTop: '0.4rem', fontWeight: '600', color: '#0f172a' }}>Phone: {addr.phone}</div>
+
+                <div className="space-y-1 text-xs">
+                  <div className="font-black text-sm text-slate-900">{addr.fullName}</div>
+                  <div className="text-slate-600 leading-relaxed">{addr.address}</div>
+                  <div className="text-slate-600">{addr.city}, {addr.state} - {addr.postalCode}</div>
+                  <div className="text-slate-400 font-bold pt-1">Phone: {addr.phone}</div>
                 </div>
 
-                <div style={{ marginTop: '1rem', paddingTop: '0.8rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                   <button
                     onClick={() => handleDeleteAddress(addr.id)}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: '700' }}
+                    className="neu-btn p-2 rounded-xl text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                    title="Delete Address"
                   >
-                    <Trash2 size={16} /> Delete Address
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -304,89 +314,85 @@ const UserProfile = () => {
         </div>
       )}
 
-      {/* Add New Address Modal */}
+      {/* ADD ADDRESS MODAL */}
       {showAddressModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', width: '100%', maxWidth: '500px', borderRadius: '16px', padding: '2rem', border: '1px solid #cbd5e1', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', paddingBottom: '0.8rem', borderBottom: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Add New Shipping Address</h3>
-              <button onClick={() => setShowAddressModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
-                <X size={20} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="neu-card p-6 sm:p-8 rounded-3xl w-full max-w-lg space-y-6 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-black text-slate-900">Add New Delivery Address</h3>
+              <button
+                onClick={() => setShowAddressModal(false)}
+                className="neu-btn w-8 h-8 rounded-xl flex items-center justify-center text-slate-500"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddAddress} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <form onSubmit={handleAddAddress} className="space-y-4">
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Full Name</label>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Full Name *
+                </label>
                 <input
                   type="text"
                   required
                   value={newAddress.fullName}
                   onChange={(e) => setNewAddress({ ...newAddress, fullName: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Phone Number</label>
-                <input
-                  type="text"
-                  required
-                  value={newAddress.phone}
-                  onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
-              </div>
-
-              <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Street Address / Flat No.</label>
+                <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  Street Address & Flat / Building *
+                </label>
                 <input
                   type="text"
                   required
                   value={newAddress.address}
                   onChange={(e) => setNewAddress({ ...newAddress, address: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
+                  className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>City</label>
-                <input
-                  type="text"
-                  required
-                  value={newAddress.city}
-                  onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAddress.city}
+                    onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                    Postal Pincode
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAddress.postalCode}
+                    onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>PIN Code</label>
-                <input
-                  type="text"
-                  required
-                  value={newAddress.postalCode}
-                  onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem' }}
-                />
-              </div>
-
-              <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.4rem' }}>
-                <input
-                  type="checkbox"
-                  id="chkDefault"
-                  checked={newAddress.isDefault}
-                  onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })}
-                />
-                <label htmlFor="chkDefault" style={{ fontSize: '0.85rem', fontWeight: '600', color: '#0f172a', cursor: 'pointer' }}>
-                  Set as default delivery address
-                </label>
-              </div>
-
-              <div style={{ gridColumn: 'span 2', display: 'flex', gap: '0.8rem', marginTop: '1rem' }}>
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddressModal(false)}
+                  className="neu-btn px-5 py-2.5 rounded-2xl text-xs font-bold text-slate-600"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  style={{ flex: 1, background: '#16a34a', color: '#ffffff', border: 'none', padding: '0.75rem', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
+                  className="neu-btn-primary px-6 py-2.5 rounded-2xl text-xs font-black text-white shadow-md"
                 >
                   Save Address
                 </button>

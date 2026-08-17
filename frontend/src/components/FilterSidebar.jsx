@@ -18,20 +18,20 @@ const FilterSidebar = ({
   const brands = ['Apple', 'Samsung', 'Sony', 'Nike', 'LG', 'Dyson', 'Ray-Ban'];
 
   return (
-    <aside className="w-full lg:w-72 shrink-0 space-y-6">
-      <div className="neu-card p-6 space-y-6 sticky top-24">
+    <aside className="w-full lg:w-72 shrink-0 space-y-6 font-['Inter']">
+      <div className="neu-card p-6 space-y-6 sticky top-24 rounded-3xl">
         
         {/* Header Title */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/60">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-300/70">
           <div className="flex items-center gap-2">
-            <div className="p-2 neu-card-inset text-amber-600">
+            <div className="p-2 neu-card-inset text-amber-600 rounded-xl">
               <SlidersHorizontal className="w-4 h-4" />
             </div>
-            <h3 className="font-extrabold text-slate-900 text-base tracking-tight">Refine Catalog</h3>
+            <h3 className="font-black text-slate-900 text-sm tracking-tight font-['Outfit']">Refine Catalog</h3>
           </div>
           <button
             onClick={onResetFilters}
-            className="text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors group"
+            className="text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors group cursor-pointer"
             title="Clear all active filters"
           >
             <RotateCcw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" /> Reset
@@ -40,13 +40,13 @@ const FilterSidebar = ({
 
         {/* Price Sort Selection */}
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <DollarSign className="w-3.5 h-3.5 text-amber-500" /> Sort Products
           </label>
           <select
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value)}
-            className="w-full bg-slate-50 text-slate-900 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all cursor-pointer"
+            className="w-full neu-input text-slate-900 text-xs font-bold px-3.5 py-2.5 outline-none cursor-pointer"
           >
             <option value="featured">✨ Featured Deals</option>
             <option value="price-asc">💵 Price: Low to High</option>
@@ -57,24 +57,24 @@ const FilterSidebar = ({
 
         {/* Interactive Category Chips */}
         <div className="space-y-2.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5 text-blue-500" /> Categories
           </label>
           <div className="flex flex-wrap gap-2">
-            {['All', 'Mobiles', 'Electronics', 'Fashion', 'Home & Kitchen', 'Appliances'].map((cat) => {
+            {['All', 'Mobiles', 'Electronics', 'Fashion', 'Home & Kitchen', 'Appliances', 'Beauty & Toys'].map((cat) => {
               const isSelected = selectedCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => onSelectCategory(cat)}
-                  className={`text-xs font-bold px-3 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5 ${
+                  className={`text-xs font-bold px-3 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? 'bg-slate-900 text-white shadow-md shadow-slate-950/10 scale-105'
-                      : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
+                      ? 'neu-card-inset text-amber-700 font-black shadow-inner'
+                      : 'neu-btn text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <span>{cat === 'Home & Kitchen' ? 'Home Utilities' : cat}</span>
-                  {isSelected && <Check className="w-3 h-3 text-amber-400" />}
+                  {isSelected && <Check className="w-3 h-3 text-amber-500" />}
                 </button>
               );
             })}
@@ -82,10 +82,10 @@ const FilterSidebar = ({
         </div>
 
         {/* Custom Price Range Slider */}
-        <div className="space-y-3 pt-2 border-t border-slate-100">
+        <div className="space-y-3 pt-2 border-t border-slate-300/70">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Max Budget</label>
-            <span className="text-xs font-extrabold text-amber-600 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
+            <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Max Budget</label>
+            <span className="text-xs font-black text-amber-600 neu-card-inset px-2.5 py-1 rounded-lg">
               ₹{Number(priceRange).toLocaleString('en-IN')}
             </span>
           </div>
@@ -96,7 +96,7 @@ const FilterSidebar = ({
             step="5000"
             value={priceRange}
             onChange={(e) => onPriceChange(e.target.value)}
-            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
+            className="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
           <div className="flex justify-between text-[10px] font-bold text-slate-400">
             <span>₹5,000</span>
@@ -105,8 +105,8 @@ const FilterSidebar = ({
         </div>
 
         {/* Brand Checkboxes */}
-        <div className="space-y-2.5 pt-2 border-t border-slate-100">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+        <div className="space-y-2.5 pt-2 border-t border-slate-300/70">
+          <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5 text-purple-500" /> Brand Filter
           </label>
           <div className="space-y-1.5">
@@ -115,20 +115,20 @@ const FilterSidebar = ({
               return (
                 <label
                   key={b}
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors ${
-                    isChecked ? 'bg-amber-400/10 text-slate-900 font-bold border border-amber-400/30' : 'hover:bg-slate-50 text-slate-600'
+                  onClick={() => onBrandChange(isChecked ? '' : b)}
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all select-none ${
+                    isChecked
+                      ? 'neu-card-inset text-amber-700 font-black'
+                      : 'hover:bg-slate-200/50 text-slate-600'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => onBrandChange(isChecked ? '' : b)}
-                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-amber-400"
-                    />
-                    <span>{b}</span>
-                  </div>
-                  {isChecked && <Sparkles className="w-3 h-3 text-amber-500" />}
+                  <span>{b}</span>
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => {}}
+                    className="accent-amber-500"
+                  />
                 </label>
               );
             })}

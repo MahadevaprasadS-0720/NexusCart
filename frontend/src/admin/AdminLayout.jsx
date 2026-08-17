@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, ArrowLeft, ShieldCheck, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, ArrowLeft, ShieldCheck, TrendingUp, Key } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
@@ -29,6 +29,9 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink to="/admin/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <Users size={20} /> Customer Accounts
+          </NavLink>
+          <NavLink to="/admin/clover" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <Key size={20} /> Clover & Live APIs
           </NavLink>
         </nav>
 

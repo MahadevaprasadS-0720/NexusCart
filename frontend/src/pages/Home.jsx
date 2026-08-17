@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import BannerCarousel from '../components/BannerCarousel';
 import CategoryNav from '../components/CategoryNav';
 import FilterSidebar from '../components/FilterSidebar';
@@ -151,35 +151,6 @@ const Home = () => {
               <option value="price-desc">💰 Price: High to Low</option>
               <option value="rating-desc">⭐ Highest Customer Rating</option>
             </select>
-          </div>
-        </div>
-
-        {/* Clover Live Merchant Inventory Banner */}
-        <div className="bg-gradient-to-r from-emerald-900/90 via-slate-900 to-slate-900 text-white rounded-2xl p-4 md:p-5 border border-emerald-500/40 shadow-lg mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl shrink-0">
-              🍀
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-extrabold text-sm md:text-base text-white">Clover Live Product Details Engine Active</h3>
-                <span className="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  SANDBOX CONNECTED
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Merchant ID: <code className="text-sky-300 font-mono font-bold">DS4FQK0J81Z21</code> • Real-time live inventory catalog & secure eComm iframe tokens.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Link
-              to="/clover"
-              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5"
-            >
-              <span>🍀</span> Open Clover Live Store & Diagnostics
-            </Link>
           </div>
         </div>
 

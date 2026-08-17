@@ -32,7 +32,7 @@ echo.
 
 echo [STEP 3/4] Committing and Pushing to GitHub...
 git add .
-git commit -m "feat: complete live market store feed with 150+ items and Clover integration"
+git commit -m "fix(security): move Clover API keys and diagnostics to admin dashboard and secure customer storefront"
 git push origin main
 if %ERRORLEVEL% NEQ 0 (
     echo Pushing to origin master instead...
@@ -47,9 +47,10 @@ start https://nexuscart-fc3a2.web.app
 
 echo ====================================================================
 echo 🌟 ALL TASKS COMPLETED SUCCESSFULLY!
-echo 🌐 Live Production URL: https://nexuscart-fc3a2.web.app
-echo 🍀 Live Clover Page:   https://nexuscart-fc3a2.web.app/clover
-echo 🔗 GitHub Repository:  https://github.com/MahadevaprasadS-0720/NexusCart
+echo 🌐 Live Production Store: https://nexuscart-fc3a2.web.app
+echo 🛡️ Admin Portal:          https://nexuscart-fc3a2.web.app/admin
+echo 🔑 Clover Admin Tools:    https://nexuscart-fc3a2.web.app/admin/clover
+echo 🔗 GitHub Repository:     https://github.com/MahadevaprasadS-0720/NexusCart
 echo ====================================================================
 echo.
 pause

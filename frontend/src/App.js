@@ -23,6 +23,7 @@ import WishlistPage from './pages/WishlistPage';
 import UserProfile from './pages/UserProfile';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import CloverLivePage from './pages/CloverLivePage';
 
 // Admin Dashboard Pages
 import AdminLayout from './admin/AdminLayout';
@@ -56,7 +57,6 @@ function App() {
               <Route index element={<Home />} />
               <Route path="home" element={<Home />} />
               <Route path="product/:id" element={<ProductDetails />} />
-              <Route path="product-details/:id" element={<ProductDetails />} />
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
               <Route path="register" element={<Signup />} />
@@ -114,7 +114,7 @@ function App() {
               />
             </Route>
 
-            {/* Protected Admin Routes */}
+            {/* Protected Admin Routes (Clover APIs & Diagnostics are strictly Private to Admin) */}
             <Route
               path="/admin"
               element={
@@ -129,6 +129,21 @@ function App() {
               <Route path="orders" element={<ManageOrders />} />
               <Route path="manage-orders" element={<ManageOrders />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="clover" element={<CloverLivePage />} />
+              <Route path="clover-live" element={<CloverLivePage />} />
+              <Route path="live-products" element={<CloverLivePage />} />
+            </Route>
+
+            {/* Direct Admin Clover Route Access */}
+            <Route
+              path="/clover"
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<CloverLivePage />} />
             </Route>
 
             {/* Fallback Catch-all Route */}

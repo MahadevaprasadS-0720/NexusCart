@@ -81,19 +81,6 @@ const Navbar = ({ categories = [], onSearch }) => {
 
           {/* Actions Nav Links */}
           <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Clover Live Products Badge Link */}
-            <Link
-              to="/clover"
-              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/25 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 hover-lift"
-              title="Clover Live Product Details & API Diagnostics"
-            >
-              <span className="radar-dot" style={{ width: '8px', height: '8px' }} />
-              <span className="hidden sm:inline">Clover Live</span>
-              <span className="bg-emerald-500 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full uppercase hidden md:inline">
-                API Live
-              </span>
-            </Link>
-
             <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-2.5 py-1 rounded-xl hover:bg-slate-800/60 text-slate-300 hover:text-white transition-all text-xs font-semibold hover-lift">
               <Package className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5" />
               <span>Orders</span>

@@ -62,9 +62,6 @@ function App() {
               <Route path="signup" element={<Signup />} />
               <Route path="register" element={<Signup />} />
               <Route path="wishlist" element={<WishlistPage />} />
-              <Route path="clover" element={<CloverLivePage />} />
-              <Route path="clover-live" element={<CloverLivePage />} />
-              <Route path="live-products" element={<CloverLivePage />} />
 
               {/* Shopping Cart & Customer Profile */}
               <Route path="cart" element={<Cart />} />
@@ -118,7 +115,7 @@ function App() {
               />
             </Route>
 
-            {/* Protected Admin Routes */}
+            {/* Protected Admin Routes (Clover APIs & Diagnostics are strictly Private to Admin) */}
             <Route
               path="/admin"
               element={
@@ -133,6 +130,21 @@ function App() {
               <Route path="orders" element={<ManageOrders />} />
               <Route path="manage-orders" element={<ManageOrders />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="clover" element={<CloverLivePage />} />
+              <Route path="clover-live" element={<CloverLivePage />} />
+              <Route path="live-products" element={<CloverLivePage />} />
+            </Route>
+
+            {/* Direct Admin Clover Route Access */}
+            <Route
+              path="/clover"
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<CloverLivePage />} />
             </Route>
 
             {/* Fallback Catch-all Route */}

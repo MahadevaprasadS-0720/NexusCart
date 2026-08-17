@@ -35,6 +35,7 @@ app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
+app.use('/api/clover', require('./routes/cloverRoutes'));
 
 // Serve Frontend Static Files for Single Unified Link (http://localhost:5000)
 const frontendDistPath = path.join(__dirname, '../frontend/dist');

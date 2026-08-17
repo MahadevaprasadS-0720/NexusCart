@@ -38,11 +38,24 @@ const Home = () => {
     try {
       setLoading(true);
       const res = await api.getProducts();
-      if (res.success && res.products && res.products.length) {
-        setProducts(res.products);
+      let allProducts = (res.success && res.products && res.products.length) ? res.products : initialProducts;
+
+      // Try fetching live items from Clover Sandbox API
+      try {
+        const cloverRes = await api.getCloverLiveProducts();
+        if (cloverRes.success && cloverRes.products && cloverRes.products.length > 0) {
+          const existingIds = new Set(allProducts.map(p => p.id || p._id));
+          const cloverProducts = cloverRes.products.filter(p => !existingIds.has(p.id));
+          allProducts = [...cloverProducts, ...allProducts];
+        }
+      } catch (ce) {
+        // Clover offline or fallback
       }
+
+      setProducts(allProducts);
     } catch (error) {
       console.log('Using local catalog dataset');
+      setProducts(initialProducts);
     } finally {
       setLoading(false);
     }

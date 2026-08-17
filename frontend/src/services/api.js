@@ -26,7 +26,14 @@ import {
   seedInitialDataIfEmpty
 } from './firebaseDb';
 
-// Unified API Service Layer powered by Google Firebase (v9+ Modular SDK)
+import {
+  fetchLiveCloverProducts,
+  fetchLiveCloverProductById,
+  processCloverPayment
+} from './cloverService';
+import { CLOVER_CONFIG } from '../config/cloverConfig';
+
+// Unified API Service Layer powered by Google Firebase (v9+ Modular SDK) and Clover eCommerce API
 export const api = {
   // Authentication Services
   async signup(userData) {
@@ -159,5 +166,22 @@ export const api = {
 
   async seedData() {
     return await seedInitialDataIfEmpty();
+  },
+
+  // Clover eCommerce & Live Products Integration
+  async getCloverLiveProducts() {
+    return await fetchLiveCloverProducts();
+  },
+
+  async getCloverLiveProductById(id) {
+    return await fetchLiveCloverProductById(id);
+  },
+
+  async processCloverPayment(paymentData) {
+    return await processCloverPayment(paymentData);
+  },
+
+  getCloverConfig() {
+    return CLOVER_CONFIG;
   }
 };

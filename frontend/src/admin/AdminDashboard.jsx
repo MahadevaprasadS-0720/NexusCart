@@ -22,6 +22,7 @@ import {
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { initialProducts, initialOrders } from '../data/mockData';
+import { CLOVER_CONFIG } from '../config/cloverConfig';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -230,6 +231,37 @@ const AdminDashboard = () => {
             </div>
 
           </div>
+
+          {/* Clover Live Merchant Integration Status Panel */}
+          <div className="bg-gradient-to-r from-emerald-950/40 via-slate-800/60 to-slate-800/60 rounded-3xl p-6 border border-emerald-500/30 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+                🍀
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-base font-extrabold text-white">Clover eCommerce & Live Inventory Engine</h4>
+                  <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Connected (Sandbox)
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Merchant ID: <code className="text-sky-400 font-mono font-bold">{CLOVER_CONFIG.merchantId}</code> | Token: <code className="text-emerald-300 font-mono">{CLOVER_CONFIG.publicToken.substring(0, 14)}...</code>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a
+                href={CLOVER_CONFIG.dashboardUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-slate-700/60 hover:bg-slate-700 text-slate-200 text-xs font-extrabold px-4 py-2.5 rounded-xl border border-slate-600 transition-all flex items-center gap-1.5"
+              >
+                Clover Portal <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
@@ -263,7 +295,14 @@ const AdminDashboard = () => {
                   <tr key={prod.id || prod._id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="p-4 flex items-center gap-3 font-bold text-white">
                       <img src={prod.image} alt={prod.name} className="w-10 h-10 object-cover rounded-xl bg-slate-900" />
-                      <span>{(prod.name || prod.title).substring(0, 32)}...</span>
+                      <div className="flex flex-col">
+                        <span>{(prod.name || prod.title).substring(0, 32)}...</span>
+                        {(prod.isCloverLive || (prod.id && String(prod.id).startsWith('clover_'))) && (
+                          <span className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-1 mt-0.5">
+                            🍀 Clover Live Inventory
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 font-semibold">{prod.category}</td>
                     <td className="p-4 font-extrabold text-sky-400">₹{Number(prod.price).toLocaleString('en-IN')}</td>

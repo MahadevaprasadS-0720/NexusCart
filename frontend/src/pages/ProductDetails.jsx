@@ -184,8 +184,15 @@ const ProductDetails = () => {
 
         {/* Right Column: Title & Actions */}
         <div>
-          <div style={{ fontSize: '0.8rem', color: '#2874f0', fontWeight: '800', textTransform: 'uppercase', tracking: '1px' }}>
-            {product.brand || 'NexusCart Prime'} • {product.category}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <div style={{ fontSize: '0.8rem', color: '#2874f0', fontWeight: '800', textTransform: 'uppercase', tracking: '1px' }}>
+              {product.brand || 'NexusCart Prime'} • {product.category}
+            </div>
+            {(product.isCloverLive || (product.id && String(product.id).startsWith('clover_'))) && (
+              <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0', fontSize: '0.72rem', fontWeight: '800', padding: '2px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                🍀 Clover Live Merchant Verified
+              </span>
+            )}
           </div>
 
           <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: '0.4rem 0 0.8rem 0', lineHeight: '1.3' }}>

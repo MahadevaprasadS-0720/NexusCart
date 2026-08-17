@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, CreditCard, ShieldCheck, CheckCircle, Lock, X, QrCode, Smartphone, Building2 } from 'lucide-react';
+import { MapPin, CreditCard, ShieldCheck, CheckCircle, Lock, X, QrCode, Smartphone, Building2, ExternalLink } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { CLOVER_CONFIG } from '../config/cloverConfig';
 
 const Checkout = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -13,7 +14,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [paymentTab, setPaymentTab] = useState('upi'); // 'upi' | 'card' | 'netbanking'
+  const [paymentTab, setPaymentTab] = useState('clover'); // 'clover' | 'upi' | 'card' | 'netbanking'
 
   const [shippingAddress, setShippingAddress] = useState({
     fullName: user ? user.name : 'Alex Johnson',
@@ -64,13 +65,26 @@ const Checkout = () => {
     setPaymentProcessing(true);
 
     try {
-      // Step 2: Verify Payment Transaction
-      const payId = `pay_razor_${Math.floor(100000 + Math.random() * 900000)}`;
-      await api.verifyPayment({
-        razorpay_payment_id: payId,
-        paymentIntentId: paymentIntent?.clientSecret || `pi_${Date.now()}`,
-        paymentMethod: paymentTab === 'upi' ? 'UPI QR Code' : paymentTab === 'card' ? 'Credit/Debit Card' : 'NetBanking'
-      });
+      let payId = `pay_${paymentTab === 'clover' ? 'clv' : 'rzp'}_${Math.floor(100000 + Math.random() * 900000)}`;
+
+      if (paymentTab === 'clover') {
+        const cloverRes = await api.processCloverPayment({
+          token: CLOVER_CONFIG.publicToken,
+          amount: cartTotal,
+          customerEmail: user ? user.email : 'customer@example.com',
+          description: `NexusCart Order for ${shippingAddress.fullName}`
+        });
+        if (cloverRes && cloverRes.chargeId) {
+          payId = cloverRes.chargeId;
+        }
+      } else {
+        // Step 2: Verify Payment Transaction with Firebase
+        await api.verifyPayment({
+          razorpay_payment_id: payId,
+          paymentIntentId: paymentIntent?.clientSecret || `pi_${Date.now()}`,
+          paymentMethod: paymentTab === 'upi' ? 'UPI QR Code' : paymentTab === 'card' ? 'Credit/Debit Card' : 'NetBanking'
+        });
+      }
 
       // Step 3: Commit Order Document into Firebase Firestore
       const orderPayload = {
@@ -85,11 +99,12 @@ const Checkout = () => {
           image: item.image || (item.images ? item.images[0] : '')
         })),
         shippingAddress,
-        paymentMethod: paymentTab === 'upi' ? 'UPI QR Code' : paymentTab === 'card' ? 'Credit Card' : 'NetBanking',
+        paymentMethod: paymentTab === 'clover' ? 'Clover eComm Gateway' : paymentTab === 'upi' ? 'UPI QR Code' : paymentTab === 'card' ? 'Credit Card' : 'NetBanking',
         paymentStatus: 'Paid',
         totalPrice: cartTotal,
         totalAmount: cartTotal,
-        transactionId: payId
+        transactionId: payId,
+        cloverMerchantId: CLOVER_CONFIG.merchantId
       };
 
       // Call Firestore database service
@@ -191,15 +206,45 @@ const Checkout = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {['UPI QR Code (Google Pay, PhonePe, Paytm)', 'Credit / Debit Card (Visa, Mastercard, RuPay)', 'NetBanking / Direct Bank Transfer'].map((method) => (
-                <label key={method} style={{ padding: '0.85rem', borderRadius: '8px', border: paymentMethod === method ? '2px solid #2874f0' : '1px solid #cbd5e1', display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', background: paymentMethod === method ? '#eff6ff' : '#fff' }}>
-                  <input
-                    type="radio"
-                    name="payMethod"
-                    checked={paymentMethod === method}
-                    onChange={() => setPaymentMethod(method)}
-                  />
-                  <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#0f172a' }}>{method}</span>
+              {[
+                { id: 'clover', name: '🍀 Clover Secure eCommerce Pay (iFrame / Card)', badge: 'Sandbox Live' },
+                { id: 'upi', name: 'UPI QR Code (Google Pay, PhonePe, Paytm)', badge: 'Instant' },
+                { id: 'card', name: 'Credit / Debit Card (Visa, Mastercard, RuPay)', badge: 'Secure 256-bit' },
+                { id: 'netbanking', name: 'NetBanking / Direct Bank Transfer', badge: 'All Banks' }
+              ].map((item) => (
+                <label
+                  key={item.id}
+                  onClick={() => {
+                    setPaymentMethod(item.name);
+                    setPaymentTab(item.id);
+                  }}
+                  style={{
+                    padding: '0.85rem 1rem',
+                    borderRadius: '8px',
+                    border: (paymentTab === item.id || paymentMethod === item.name) ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    background: (paymentTab === item.id || paymentMethod === item.name) ? '#f0fdf4' : '#fff',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                    <input
+                      type="radio"
+                      name="payMethod"
+                      checked={paymentTab === item.id || paymentMethod === item.name}
+                      onChange={() => {
+                        setPaymentMethod(item.name);
+                        setPaymentTab(item.id);
+                      }}
+                    />
+                    <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}>{item.name}</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '700', padding: '0.2rem 0.5rem', borderRadius: '4px', background: item.id === 'clover' ? '#dcfce7' : '#f1f5f9', color: item.id === 'clover' ? '#166534' : '#475569' }}>
+                    {item.badge}
+                  </span>
                 </label>
               ))}
             </div>
@@ -274,7 +319,29 @@ const Checkout = () => {
             </div>
 
             {/* Payment Method Switcher Tabs */}
-            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', marginBottom: '1.2rem' }}>
+            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', marginBottom: '1.2rem', gap: '3px' }}>
+              <button
+                type="button"
+                onClick={() => setPaymentTab('clover')}
+                style={{
+                  flex: 1.2,
+                  padding: '0.55rem',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '700',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  background: paymentTab === 'clover' ? '#ffffff' : 'transparent',
+                  color: paymentTab === 'clover' ? '#16a34a' : '#64748b',
+                  boxShadow: paymentTab === 'clover' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <span>🍀</span> Clover Pay
+              </button>
               <button
                 type="button"
                 onClick={() => setPaymentTab('upi')}
@@ -284,7 +351,7 @@ const Checkout = () => {
                   border: 'none',
                   borderRadius: '6px',
                   fontWeight: '700',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   cursor: 'pointer',
                   background: paymentTab === 'upi' ? '#ffffff' : 'transparent',
                   color: paymentTab === 'upi' ? '#2874f0' : '#64748b',
@@ -295,7 +362,7 @@ const Checkout = () => {
                   gap: '0.3rem'
                 }}
               >
-                <QrCode size={16} /> UPI / QR Code
+                <QrCode size={15} /> UPI
               </button>
               <button
                 type="button"
@@ -306,7 +373,7 @@ const Checkout = () => {
                   border: 'none',
                   borderRadius: '6px',
                   fontWeight: '700',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   cursor: 'pointer',
                   background: paymentTab === 'card' ? '#ffffff' : 'transparent',
                   color: paymentTab === 'card' ? '#2874f0' : '#64748b',
@@ -317,7 +384,7 @@ const Checkout = () => {
                   gap: '0.3rem'
                 }}
               >
-                <CreditCard size={16} /> Card
+                <CreditCard size={15} /> Card
               </button>
               <button
                 type="button"
@@ -328,7 +395,7 @@ const Checkout = () => {
                   border: 'none',
                   borderRadius: '6px',
                   fontWeight: '700',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   cursor: 'pointer',
                   background: paymentTab === 'netbanking' ? '#ffffff' : 'transparent',
                   color: paymentTab === 'netbanking' ? '#2874f0' : '#64748b',
@@ -339,9 +406,81 @@ const Checkout = () => {
                   gap: '0.3rem'
                 }}
               >
-                <Building2 size={16} /> NetBanking
+                <Building2 size={15} /> NetBank
               </button>
             </div>
+
+            {/* Tab 0: Clover eComm Iframe & Hosted Fields */}
+            {paymentTab === 'clover' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '28px', height: '28px', background: '#16a34a', color: '#fff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.85rem' }}>
+                      🍀
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#166534' }}>Clover eComm Gateway</div>
+                      <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Merchant ID: <code>{CLOVER_CONFIG.merchantId}</code></div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.7rem', background: '#22c55e', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: '12px', fontWeight: '700' }}>
+                    SANDBOX LIVE
+                  </span>
+                </div>
+
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.9rem', background: '#f8fafc' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#475569' }}>Clover Hosted Card Fields</span>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Token: <code>{CLOVER_CONFIG.publicToken.substring(0, 10)}...</code></span>
+                  </div>
+
+                  <div style={{ marginBottom: '0.6rem' }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>Cardholder Name</label>
+                    <input
+                      type="text"
+                      value={cardDetails.name}
+                      onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff' }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '0.6rem' }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>Card Number (Clover Tokenized)</label>
+                    <input
+                      type="text"
+                      value={cardDetails.number}
+                      onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff', fontFamily: 'monospace' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>Expiry</label>
+                      <input
+                        type="text"
+                        value={cardDetails.expiry}
+                        onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
+                        style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569' }}>CVV</label>
+                      <input
+                        type="password"
+                        value={cardDetails.cvv}
+                        onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
+                        style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', marginTop: '0.2rem', background: '#fff' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}>
+                  <ShieldCheck size={14} color="#16a34a" /> 256-bit SSL encrypted directly with Clover Sandbox Gateway
+                </div>
+              </div>
+            )}
 
             {/* Tab 1: UPI QR Code & VPA */}
             {paymentTab === 'upi' && (

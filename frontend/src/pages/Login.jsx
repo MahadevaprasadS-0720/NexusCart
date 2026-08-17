@@ -15,7 +15,9 @@ import {
   ShieldCheck, 
   Zap, 
   KeyRound,
-  ArrowLeft
+  ArrowLeft,
+  Flame,
+  Check
 } from 'lucide-react';
 import {
   signInWithEmailAndPassword,
@@ -87,14 +89,27 @@ const Login = ({ initialMode = 'login' }) => {
     }
   }, [user, navigate]);
 
+  // Dynamic Password Strength Calculation (for Signup)
+  const getPasswordStrength = (pass) => {
+    if (!pass) return 0;
+    let score = 0;
+    if (pass.length >= 6) score += 1;
+    if (pass.length >= 8 && /[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass) && /[^A-Za-z0-9]/.test(pass)) score += 1;
+    return score; // 0 to 3
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
   // Quick Demo Auto-Fill
   const handleQuickFill = (demoEmail, demoPass) => {
     setEmail(demoEmail);
     setPassword(demoPass);
     setError('');
+    setSuccessMessage('');
   };
 
-  // Mobile-Optimized Form Submit Handler
+  // Form Submit Handler
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -213,84 +228,104 @@ const Login = ({ initialMode = 'login' }) => {
   };
 
   return (
-    <div className="min-h-screen neu-bg py-8 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center font-['Inter'] relative overflow-hidden">
+    <div className="min-h-screen neu-bg py-8 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center font-['Inter'] relative overflow-hidden select-none">
       
-      {/* Soft Ambient Background Orbs */}
-      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-sky-200/40 blur-3xl pointer-events-none" />
+      {/* Dynamic Multi-Layered Aurora Ambient Lightings */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-amber-300/40 via-amber-400/20 to-transparent blur-[120px] pointer-events-none aurora-bg" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[550px] h-[550px] rounded-full bg-gradient-to-bl from-sky-400/35 via-indigo-300/20 to-transparent blur-[130px] pointer-events-none aurora-bg" style={{ animationDelay: '-7s' }} />
+      <div className="absolute top-[40%] right-[15%] w-[350px] h-[350px] rounded-full bg-gradient-to-r from-emerald-300/25 to-amber-200/20 blur-[100px] pointer-events-none animate-pulse" />
 
-      {/* Main Neumorphic Card Container */}
-      <div className="w-full max-w-4xl neu-card p-6 sm:p-10 md:p-12 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      {/* Floating Micro Light Sparks */}
+      <div className="absolute top-20 left-1/4 w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_15px_#f59e0b] spark-dot pointer-events-none" />
+      <div className="absolute bottom-28 left-16 w-2.5 h-2.5 rounded-full bg-sky-400/80 shadow-[0_0_12px_#38bdf8] spark-dot pointer-events-none" style={{ animationDelay: '1.2s' }} />
+      <div className="absolute top-1/3 right-20 w-3 h-3 rounded-full bg-emerald-400/80 shadow-[0_0_15px_#34d399] spark-dot pointer-events-none" style={{ animationDelay: '2.4s' }} />
+
+      {/* Main Glowing Neumorphic Card */}
+      <div className="w-full max-w-4xl neu-card neu-card-glowing p-6 sm:p-10 md:p-12 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         
-        {/* Left Branding & Highlights Column */}
+        {/* Left Branding & Interactive Highlights Column */}
         <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-6 sm:space-y-8">
           
           <div>
-            {/* Store Brand Link */}
-            <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="neu-btn-circle text-amber-500 hover:text-amber-600 transition-colors">
-                <ShoppingBag className="w-6 h-6" />
+            {/* Store Brand Link with Glowing Ring */}
+            <Link to="/" className="inline-flex items-center gap-3.5 group">
+              <div className="relative">
+                <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full blur-sm opacity-60 group-hover:opacity-100 transition-opacity" />
+                <div className="neu-btn-circle text-amber-500 hover:text-amber-600 transition-colors relative">
+                  <ShoppingBag className="w-6 h-6 animate-float" />
+                </div>
               </div>
               <div>
                 <h1 className="font-extrabold text-2xl font-['Outfit'] text-slate-800 tracking-tight flex items-center gap-1.5">
                   NexusCart <span className="text-amber-500 font-black">Prime</span>
                 </h1>
-                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
-                  Official Storefront
+                <p className="text-[10px] font-extrabold text-amber-600/80 uppercase tracking-widest flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                  Premium Cloud Storefront
                 </p>
               </div>
             </Link>
 
             <div className="mt-8 space-y-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 neu-badge text-[11px] font-extrabold text-amber-600">
-                <Sparkles className="w-3.5 h-3.5" /> Next-Gen Soft UI Auth
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 neu-badge text-[11px] font-extrabold text-amber-600 shadow-sm border border-amber-400/20">
+                <Sparkles className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '8s' }} />
+                <span>Next-Gen Tactile Experience</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 font-['Outfit'] leading-snug">
-                {authMode === 'signup' ? 'Join NexusCart Today.' : 'Welcome to Seamless Shopping.'}
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 font-['Outfit'] leading-tight">
+                {authMode === 'signup' ? 'Create Your Prime Account.' : 'Experience Prime Speed & Security.'}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-                Access over 10,000+ lightning deals, fast express delivery, smart wishlist, and instant checkout.
+                Enjoy 10,000+ lightning deals, fast express shipping, secure encrypted payments, and 24/7 priority support.
               </p>
             </div>
           </div>
 
-          {/* Neumorphic Value Props */}
-          <div className="neu-card-inset p-4 space-y-3">
-            <div className="flex items-center gap-2.5 text-xs font-bold text-slate-700">
-              <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>256-Bit Encrypted Secure Login</span>
+          {/* Neumorphic Value Props with Radiant Icons */}
+          <div className="neu-card-inset p-4 sm:p-5 space-y-3.5 border border-white/50">
+            <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+              <div className="w-7 h-7 rounded-xl neu-btn flex items-center justify-center text-emerald-500 shadow-sm">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <span>256-Bit Encrypted Secure Authentication</span>
             </div>
-            <div className="flex items-center gap-2.5 text-xs font-bold text-slate-700">
-              <Zap className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>Instant Order Tracking & Rewards</span>
+            <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+              <div className="w-7 h-7 rounded-xl neu-btn flex items-center justify-center text-amber-500 shadow-sm">
+                <Zap className="w-4 h-4" />
+              </div>
+              <span>Real-Time Order Sync & Live Tracking</span>
             </div>
-            <div className="flex items-center gap-2.5 text-xs font-bold text-slate-700">
-              <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
-              <span>Verified Buyer & Admin Access</span>
+            <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+              <div className="w-7 h-7 rounded-xl neu-btn flex items-center justify-center text-sky-500 shadow-sm">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <span>Instant Buyer & Admin Cloud Verification</span>
             </div>
           </div>
 
-          {/* Quick Demo Fill Pills for Testing */}
+          {/* Quick Demo Credentials with Soft Glow Highlights */}
           <div className="space-y-2 pt-2">
-            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
-              ⚡ Quick Fill Credentials:
-            </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-amber-500" /> 1-Click Quick Fill:
+              </span>
+              <span className="text-[10px] text-slate-400 font-semibold">Test Store</span>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
               <button
                 type="button"
                 onClick={() => handleQuickFill('smahi.072006@gmail.com', 'admin123')}
-                className="neu-btn px-3 py-1.5 text-[11px] font-bold text-slate-700 flex items-center gap-1 hover:text-amber-600"
-                title="Fill Admin credentials"
+                className="neu-btn px-3.5 py-1.5 text-[11px] font-extrabold text-slate-700 flex items-center gap-1.5 hover:text-amber-600 transition-all hover:border-amber-400/40"
+                title="Fill Admin credentials (smahi.072006@gmail.com)"
               >
-                <KeyRound className="w-3 h-3 text-amber-500" /> Admin
+                <KeyRound className="w-3.5 h-3.5 text-amber-500" /> Admin Access
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickFill('john@example.com', 'password123')}
-                className="neu-btn px-3 py-1.5 text-[11px] font-bold text-slate-700 flex items-center gap-1 hover:text-sky-600"
-                title="Fill Customer credentials"
+                className="neu-btn px-3.5 py-1.5 text-[11px] font-extrabold text-slate-700 flex items-center gap-1.5 hover:text-sky-600 transition-all hover:border-sky-400/40"
+                title="Fill Demo Customer credentials (john@example.com)"
               >
-                <User className="w-3 h-3 text-sky-500" /> Demo User
+                <User className="w-3.5 h-3.5 text-sky-500" /> Customer Demo
               </button>
             </div>
           </div>
@@ -300,14 +335,14 @@ const Login = ({ initialMode = 'login' }) => {
         {/* Right Form Neumorphic Column */}
         <div className="lg:col-span-7 flex flex-col justify-center">
           
-          {/* Neumorphic Tab Switcher */}
+          {/* Glowing Neumorphic Segmented Tab Switcher */}
           {!forgotPasswordMode && (
-            <div className="neu-card-inset p-1.5 flex mb-6 max-w-xs mx-auto w-full">
+            <div className="neu-card-inset p-1.5 flex mb-6 max-w-xs mx-auto w-full border border-white/60">
               <button
                 type="button"
                 onClick={() => { setAuthMode('login'); setError(''); setSuccessMessage(''); }}
-                className={`flex-1 py-2.5 px-4 font-extrabold text-xs transition-all flex items-center justify-center gap-2 ${
-                  authMode === 'login' ? 'neu-tab-active' : 'neu-tab-inactive'
+                className={`flex-1 py-2.5 px-4 font-black text-xs transition-all flex items-center justify-center gap-2 ${
+                  authMode === 'login' ? 'neu-tab-active text-amber-600' : 'neu-tab-inactive'
                 }`}
               >
                 <UserCheck className="w-4 h-4 text-amber-500" /> Sign In
@@ -316,8 +351,8 @@ const Login = ({ initialMode = 'login' }) => {
               <button
                 type="button"
                 onClick={() => { setAuthMode('signup'); setError(''); setSuccessMessage(''); }}
-                className={`flex-1 py-2.5 px-4 font-extrabold text-xs transition-all flex items-center justify-center gap-2 ${
-                  authMode === 'signup' ? 'neu-tab-active' : 'neu-tab-inactive'
+                className={`flex-1 py-2.5 px-4 font-black text-xs transition-all flex items-center justify-center gap-2 ${
+                  authMode === 'signup' ? 'neu-tab-active text-sky-600' : 'neu-tab-inactive'
                 }`}
               >
                 <User className="w-4 h-4 text-sky-500" /> Register
@@ -336,22 +371,22 @@ const Login = ({ initialMode = 'login' }) => {
             </h3>
             <p className="text-xs font-semibold text-slate-500 mt-1">
               {forgotPasswordMode
-                ? 'Enter your registered email address to receive reset instructions'
+                ? 'Enter your registered email address to receive password reset instructions'
                 : authMode === 'signup'
                 ? 'Fill in your details below to create your free account'
-                : 'Enter your credentials to manage orders and wishlist'}
+                : 'Enter your credentials to manage orders, wishlist & checkout'}
             </p>
           </div>
 
           {/* Alerts */}
           {error && (
-            <div className="neu-card-inset bg-red-50/50 border border-red-200/60 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold mb-5 text-center leading-snug">
+            <div className="neu-card-inset bg-red-50/70 border border-red-300 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold mb-5 text-center leading-snug shadow-sm animate-shake">
               {error}
             </div>
           )}
 
           {successMessage && (
-            <div className="neu-card-inset bg-emerald-50/50 border border-emerald-200/60 text-emerald-700 px-4 py-3 rounded-2xl text-xs font-bold mb-5 text-center leading-snug">
+            <div className="neu-card-inset bg-emerald-50/70 border border-emerald-300 text-emerald-700 px-4 py-3 rounded-2xl text-xs font-bold mb-5 text-center leading-snug shadow-sm">
               {successMessage}
             </div>
           )}
@@ -401,7 +436,7 @@ const Login = ({ initialMode = 'login' }) => {
               </div>
             </div>
 
-            {/* Password */}
+            {/* Password Field */}
             {!forgotPasswordMode && (
               <div>
                 <div className="flex items-center justify-between mb-1.5 ml-1">
@@ -412,7 +447,7 @@ const Login = ({ initialMode = 'login' }) => {
                     <button
                       type="button"
                       onClick={() => { setForgotPasswordMode(true); setError(''); setSuccessMessage(''); }}
-                      className="text-[11px] font-bold text-amber-600 hover:text-amber-700 hover:underline"
+                      className="text-[11px] font-bold text-amber-600 hover:text-amber-700 hover:underline cursor-pointer"
                     >
                       Forgot password?
                     </button>
@@ -434,12 +469,34 @@ const Login = ({ initialMode = 'login' }) => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-4 h-4 text-amber-600" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+
+                {/* Password Strength Live Lighting Bar (Sign Up Only) */}
+                {authMode === 'signup' && password.length > 0 && (
+                  <div className="mt-2 space-y-1 ml-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        passwordStrength >= 1 ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-slate-300'
+                      }`} />
+                      <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        passwordStrength >= 2 ? 'bg-sky-500 shadow-[0_0_8px_#0ea5e9]' : 'bg-slate-300'
+                      }`} />
+                      <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        passwordStrength >= 3 ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-300'
+                      }`} />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      {passwordStrength === 1 && '⚠️ Basic password (add uppercase & numbers for strong security)'}
+                      {passwordStrength === 2 && '👍 Medium security password'}
+                      {passwordStrength === 3 && '🔒 Excellent & strong password!'}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -465,25 +522,25 @@ const Login = ({ initialMode = 'login' }) => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
                     title={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                   >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4 text-amber-600" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Submit Action Button */}
+            {/* Radiant Glowing Submit Action Button */}
             <button
               type="submit"
               disabled={loading}
-              className="neu-btn-primary w-full font-black text-sm min-h-[50px] py-3.5 px-6 flex items-center justify-center gap-2 mt-3 cursor-pointer"
+              className="neu-btn-primary w-full font-black text-sm min-h-[52px] py-3.5 px-6 flex items-center justify-center gap-2 mt-3 cursor-pointer"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-slate-900" />
-                  <span>Processing...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Securing & Authenticating...</span>
                 </>
               ) : forgotPasswordMode ? (
                 <>
@@ -492,7 +549,7 @@ const Login = ({ initialMode = 'login' }) => {
                 </>
               ) : authMode === 'signup' ? (
                 <>
-                  <span>Create Free Account</span>
+                  <span>Create Prime Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               ) : (
@@ -515,7 +572,7 @@ const Login = ({ initialMode = 'login' }) => {
             )}
           </form>
 
-          {/* Social Sign-In (Google) */}
+          {/* Social Sign-In (Google) with Lighting Plate */}
           {!forgotPasswordMode && (
             <div className="mt-6 space-y-4">
               <div className="relative flex items-center justify-center">
@@ -530,7 +587,7 @@ const Login = ({ initialMode = 'login' }) => {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={googleLoading}
-                  className="neu-btn w-full py-3 px-4 font-extrabold text-xs text-slate-700 flex items-center justify-center gap-3 cursor-pointer"
+                  className="neu-btn w-full py-3 px-4 font-extrabold text-xs text-slate-700 flex items-center justify-center gap-3 cursor-pointer hover:border-sky-400/40"
                 >
                   {googleLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-slate-600" />

@@ -10,14 +10,26 @@ import {
   LogOut,
   Package,
   Sparkles,
+  Search,
+  SlidersHorizontal,
   X
 } from 'lucide-react';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useFilters } from '../context/FilterContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { cartCount, wishlist } = useCart();
+  const {
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    activeFiltersCount,
+    setIsFilterDrawerOpen
+  } = useFilters();
+
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [deliveryLocation, setDeliveryLocation] = useState({
     city: 'Bengaluru',
@@ -66,17 +78,79 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Delivery Badge (Desktop) - Inset Soft UI - Clickable */}
+          {/* Delivery Badge (Desktop) - Inset Soft UI */}
           <div
             onClick={() => setShowLocationModal(true)}
-            className="hidden sm:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all shrink-0"
+            className="hidden xl:flex items-center gap-2.5 px-3 py-1.5 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all shrink-0"
             title="Click to change delivery pincode"
           >
             <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
             <div>
-              <div className="text-[10px] text-slate-500 font-medium">Deliver to {user ? user.name.split(' ')[0] : 'Guest'}</div>
-              <div className="font-extrabold text-slate-700">{deliveryLocation.city} {deliveryLocation.pincode}</div>
+              <div className="text-[9px] text-slate-500 font-medium">Deliver to {user ? user.name.split(' ')[0] : 'Guest'}</div>
+              <div className="font-extrabold text-slate-700 text-xs">{deliveryLocation.city} {deliveryLocation.pincode}</div>
             </div>
+          </div>
+
+          {/* Middle: Integrated Search, Filters & Sort Control Bar (Replaced directly in Top Bar) */}
+          <div className="flex-1 max-w-3xl hidden md:flex items-center gap-2">
+            
+            {/* Search Input Box */}
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search 10,000+ NexusCart products by name, brand, or model..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full neu-input text-slate-900 text-xs font-semibold pl-9 pr-8 py-2.5 outline-none placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Quick Trigger Button for Filters Drawer */}
+            <button
+              type="button"
+              onClick={() => setIsFilterDrawerOpen(true)}
+              className={`neu-btn px-3.5 py-2.5 rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shrink-0 transition-all ${
+                activeFiltersCount > 0
+                  ? 'neu-card-inset text-amber-700 border border-amber-400 shadow-xs'
+                  : 'text-slate-700 hover:text-amber-600'
+              }`}
+              title="Refine Catalog Filters"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-amber-500" />
+              <span>Filters</span>
+              {activeFiltersCount > 0 && (
+                <span className="bg-amber-500 text-white font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+
+            {/* Quick Sort Selector */}
+            <div className="flex items-center gap-1 shrink-0">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="neu-btn text-slate-800 text-xs font-extrabold px-3 py-2.5 outline-none cursor-pointer rounded-xl"
+              >
+                <option value="featured">✨ Featured & Deals</option>
+                <option value="price-asc">💵 Price: Low to High</option>
+                <option value="price-desc">💰 Price: High to Low</option>
+                <option value="rating-desc">⭐ Highest Rating</option>
+                <option value="discount-desc">🔥 Biggest Discount</option>
+                <option value="name-asc">🔤 Title: A-Z</option>
+              </select>
+            </div>
+
           </div>
 
           {/* Actions Nav Links - Neumorphic Tactile Buttons */}
@@ -134,6 +208,43 @@ const Navbar = () => {
             )}
           </div>
         </div>
+
+        {/* Mobile Search & Filter Bar */}
+        <div className="md:hidden pb-3 pt-1 flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search 10,000+ products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full neu-input text-xs text-slate-800 font-semibold pl-8 pr-7 py-2 outline-none placeholder:text-slate-400"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsFilterDrawerOpen(true)}
+            className="neu-btn px-3 py-2 text-xs font-black text-slate-700 flex items-center gap-1 shrink-0"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="bg-amber-500 text-white font-black text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
+
       </div>
 
       {/* LOCATION SELECTOR MODAL */}

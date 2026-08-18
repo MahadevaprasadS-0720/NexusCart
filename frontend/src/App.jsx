@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { FilterProvider } from './context/FilterContext';
 
 // Core Stylesheet
 import './App.css';
@@ -50,109 +51,111 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <Router>
-          <Routes>
-            {/* Customer Storefront Routes */}
-            <Route path="/" element={<UserStoreLayout />}>
-              <Route index element={<Home />} />
-              <Route path="home" element={<Home />} />
-              <Route path="product/:id" element={<ProductDetails />} />
-              <Route path="product-details/:id" element={<ProductDetails />} />
-              <Route path="login" element={<Login />} />
-              <Route path="signup" element={<Signup />} />
-              <Route path="register" element={<Signup />} />
-              <Route path="wishlist" element={<WishlistPage />} />
+        <FilterProvider>
+          <Router>
+            <Routes>
+              {/* Customer Storefront Routes */}
+              <Route path="/" element={<UserStoreLayout />}>
+                <Route index element={<Home />} />
+                <Route path="home" element={<Home />} />
+                <Route path="product/:id" element={<ProductDetails />} />
+                <Route path="product-details/:id" element={<ProductDetails />} />
+                <Route path="login" element={<Login />} />
+                <Route path="signup" element={<Signup />} />
+                <Route path="register" element={<Signup />} />
+                <Route path="wishlist" element={<WishlistPage />} />
 
-              {/* Shopping Cart & Customer Profile */}
-              <Route path="cart" element={<Cart />} />
-              <Route
-                path="profile"
-                element={
-                  <ProtectedRoute>
-                    <UserProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="my-profile"
-                element={
-                  <ProtectedRoute>
-                    <UserProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="order-success/:orderId"
-                element={
-                  <ProtectedRoute>
-                    <OrderSuccessPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="orders"
-                element={
-                  <ProtectedRoute>
-                    <MyOrders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="my-orders"
-                element={
-                  <ProtectedRoute>
-                    <MyOrders />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
+                {/* Shopping Cart & Customer Profile */}
+                <Route path="cart" element={<Cart />} />
+                <Route
+                  path="profile"
+                  element={
+                    <ProtectedRoute>
+                      <UserProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="my-profile"
+                  element={
+                    <ProtectedRoute>
+                      <UserProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="checkout"
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="order-success/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <OrderSuccessPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="orders"
+                  element={
+                    <ProtectedRoute>
+                      <MyOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="my-orders"
+                  element={
+                    <ProtectedRoute>
+                      <MyOrders />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
 
-            {/* Protected Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="products" element={<ManageProducts />} />
-              <Route path="manage-products" element={<ManageProducts />} />
-              <Route path="orders" element={<ManageOrders />} />
-              <Route path="manage-orders" element={<ManageOrders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="clover" element={<CloverLivePage />} />
-              <Route path="clover-live" element={<CloverLivePage />} />
-              <Route path="live-products" element={<CloverLivePage />} />
-            </Route>
+              {/* Protected Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<ManageProducts />} />
+                <Route path="manage-products" element={<ManageProducts />} />
+                <Route path="orders" element={<ManageOrders />} />
+                <Route path="manage-orders" element={<ManageOrders />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="clover" element={<CloverLivePage />} />
+                <Route path="clover-live" element={<CloverLivePage />} />
+                <Route path="live-products" element={<CloverLivePage />} />
+              </Route>
 
-            {/* Direct Admin Clover Route Access */}
-            <Route
-              path="/clover"
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<CloverLivePage />} />
-            </Route>
+              {/* Direct Admin Clover Route Access */}
+              <Route
+                path="/clover"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<CloverLivePage />} />
+              </Route>
 
-            {/* Fallback Catch-all Route */}
-            <Route path="*" element={<UserStoreLayout />}>
-              <Route path="*" element={<Home />} />
-            </Route>
-          </Routes>
-        </Router>
+              {/* Fallback Catch-all Route */}
+              <Route path="*" element={<UserStoreLayout />}>
+                <Route path="*" element={<Home />} />
+              </Route>
+            </Routes>
+          </Router>
+        </FilterProvider>
       </CartProvider>
     </AuthProvider>
   );

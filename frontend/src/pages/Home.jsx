@@ -4,7 +4,6 @@ import BannerCarousel from '../components/BannerCarousel';
 import CategoryNav from '../components/CategoryNav';
 import NeumorphicCategoryShowcase from '../components/NeumorphicCategoryShowcase';
 import NeumorphicDealRow from '../components/NeumorphicDealRow';
-import FilterSidebar from '../components/FilterSidebar';
 import FilterDrawerModal from '../components/FilterDrawerModal';
 import ProductCard from '../components/ProductCard';
 import { api } from '../services/api';
@@ -41,9 +40,8 @@ const Home = () => {
   const [dealsOnly, setDealsOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
 
-  // Filter Drawer / Modal State (opened via top "Filters" tab or mobile button)
+  // Filter Drawer / Modal State (opened via top "Filters" tab or bar button)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Sync URL search params
   useEffect(() => {
@@ -321,10 +319,10 @@ const Home = () => {
         />
       )}
 
-      {/* 7. Main Catalog Section with Refine Sidebar & Grid - Full Screen Expansion */}
+      {/* 7. Main Catalog Section - 100% Full-Screen Edge-to-Edge Product Grid */}
       <div id="catalog-section" className="w-full px-4 sm:px-6 lg:px-10 pt-8">
         
-        {/* Search & Sort Bar */}
+        {/* Search & Sort Control Bar */}
         <div className="neu-card p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="relative flex-1">
@@ -353,7 +351,7 @@ const Home = () => {
               className="neu-btn text-slate-800 text-xs font-black px-4 py-3 flex items-center gap-2 cursor-pointer relative hover:border-amber-500 transition-all"
             >
               <SlidersHorizontal className="w-4 h-4 text-amber-600" />
-              <span>Refine Filters</span>
+              <span>Filters</span>
               {activeFiltersCount > 0 && (
                 <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-black">
                   {activeFiltersCount}
@@ -442,70 +440,41 @@ const Home = () => {
           )}
         </div>
 
-        {/* Main Grid Layout: Sidebar & Products */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
-          {/* Inline Filter Sidebar Container */}
-          <div className="hidden lg:block w-full lg:w-80 shrink-0">
-            <FilterSidebar
-              allProducts={products}
-              selectedCategory={selectedCategory}
-              onSelectCategory={handleCategorySelect}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              priceRange={priceRange}
-              onPriceChange={setPriceRange}
-              minPrice={minPrice}
-              onMinPriceChange={setMinPrice}
-              selectedBrands={selectedBrands}
-              onBrandToggle={handleBrandToggle}
-              onClearBrands={() => setSelectedBrands([])}
-              selectedDiscount={selectedDiscount}
-              onDiscountChange={setSelectedDiscount}
-              dealsOnly={dealsOnly}
-              onDealsOnlyChange={setDealsOnly}
-              inStockOnly={inStockOnly}
-              onInStockOnlyChange={setInStockOnly}
-              onResetFilters={handleResetFilters}
-            />
-          </div>
+        {/* 100% Full-Width Product Grid - 5 to 6 Columns */}
+        <main className="w-full">
+          {loading ? (
+            <div className="neu-card rounded-3xl p-16 text-center space-y-4 max-w-md mx-auto my-8">
+              <Loader2 className="w-10 h-10 text-amber-500 animate-spin mx-auto" />
+              <h3 className="text-lg font-black text-slate-900">Loading Live Product Catalog...</h3>
+              <p className="text-xs text-slate-500 font-semibold">
+                Streaming 150+ real-time e-commerce products with live pricing and verified details.
+              </p>
+            </div>
+          ) : filteredAndSortedProducts.length === 0 ? (
+            <div className="neu-card rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto my-8">
+              <div className="w-16 h-16 rounded-2xl neu-card-inset text-amber-600 flex items-center justify-center mx-auto">
+                <Package className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900">No Matching Products Found</h3>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                We couldn't find any products matching your active filters or search terms. Try adjusting your budget or category.
+              </p>
+              <button
+                onClick={handleResetFilters}
+                className="neu-btn-primary inline-flex items-center gap-2 text-white font-black text-xs px-5 py-3 rounded-2xl transition-all shadow-md cursor-pointer"
+              >
+                <RefreshCw className="w-4 h-4" /> Reset All Catalog Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+              {filteredAndSortedProducts.map((product) => (
+                <ProductCard key={product.id || product._id} product={product} />
+              ))}
+            </div>
+          )}
+        </main>
 
-          {/* Product Grid Area - Full Screen Responsive 5-Columns Grid */}
-          <main className="flex-1 w-full">
-            {loading ? (
-              <div className="neu-card rounded-3xl p-16 text-center space-y-4 max-w-md mx-auto my-8">
-                <Loader2 className="w-10 h-10 text-amber-500 animate-spin mx-auto" />
-                <h3 className="text-lg font-black text-slate-900">Loading Live Product Catalog...</h3>
-                <p className="text-xs text-slate-500 font-semibold">
-                  Streaming 150+ real-time e-commerce products with live pricing and verified details.
-                </p>
-              </div>
-            ) : filteredAndSortedProducts.length === 0 ? (
-              <div className="neu-card rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto my-8">
-                <div className="w-16 h-16 rounded-2xl neu-card-inset text-amber-600 flex items-center justify-center mx-auto">
-                  <Package className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-black text-slate-900">No Matching Products Found</h3>
-                <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  We couldn't find any products matching your active filters or search terms. Try adjusting your budget or category.
-                </p>
-                <button
-                  onClick={handleResetFilters}
-                  className="neu-btn-primary inline-flex items-center gap-2 text-white font-black text-xs px-5 py-3 rounded-2xl transition-all shadow-md cursor-pointer"
-                >
-                  <RefreshCw className="w-4 h-4" /> Reset All Catalog Filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                {filteredAndSortedProducts.map((product) => (
-                  <ProductCard key={product.id || product._id} product={product} />
-                ))}
-              </div>
-            )}
-          </main>
-
-        </div>
       </div>
     </div>
   );

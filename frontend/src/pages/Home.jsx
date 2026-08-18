@@ -7,7 +7,21 @@ import ProductCard from '../components/ProductCard';
 import { api } from '../services/api';
 import { fetchLiveMarketStoreProducts } from '../services/liveMarketService';
 import { initialCategories } from '../data/mockData';
-import { Zap, Sparkles, Search, SlidersHorizontal, Package, RefreshCw, Loader2 } from 'lucide-react';
+import {
+  Zap,
+  Sparkles,
+  Search,
+  SlidersHorizontal,
+  Package,
+  RefreshCw,
+  Loader2,
+  X,
+  CheckCircle2,
+  Tag,
+  Star,
+  Flame,
+  ArrowUpDown
+} from 'lucide-react';
 
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,9 +33,17 @@ const Home = () => {
   // State Filters
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
-  const [sortBy, setSortBy] = useState('featured'); // 'featured' | 'price-asc' | 'price-desc' | 'rating-desc'
-  const [priceRange, setPriceRange] = useState(200000);
-  const [selectedBrand, setSelectedBrand] = useState('');
+  const [sortBy, setSortBy] = useState('featured'); // 'featured' | 'price-asc' | 'price-desc' | 'rating-desc' | 'discount-desc' | 'name-asc'
+  const [priceRange, setPriceRange] = useState(250000);
+  const [minPrice, setMinPrice] = useState(0);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [selectedDiscount, setSelectedDiscount] = useState(0);
+  const [dealsOnly, setDealsOnly] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(false);
+
+  // Mobile Filter Drawer Toggle State
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Sync URL search params
   useEffect(() => {
@@ -58,20 +80,71 @@ const Home = () => {
     }
   };
 
+  const handleBrandToggle = (brandName) => {
+    setSelectedBrands(prev =>
+      prev.includes(brandName)
+        ? prev.filter(b => b !== brandName)
+        : [...prev, brandName]
+    );
+  };
+
+  const handleCategorySelect = (catName) => {
+    setSelectedCategory(catName);
+    const newParams = new URLSearchParams(searchParams);
+    if (catName === 'All') {
+      newParams.delete('category');
+    } else {
+      newParams.set('category', catName);
+    }
+    setSearchParams(newParams);
+  };
+
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedCategory('All');
     setSortBy('featured');
-    setPriceRange(200000);
-    setSelectedBrand('');
+    setPriceRange(250000);
+    setMinPrice(0);
+    setSelectedBrands([]);
+    setSelectedRating(0);
+    setSelectedDiscount(0);
+    setDealsOnly(false);
+    setInStockOnly(false);
     setSearchParams({});
   };
 
-  // Smooth State Filtering Logic
+  // Helper function to match category flexibly
+  const isCategoryMatching = (productCategory, filterCategory) => {
+    if (!filterCategory || filterCategory === 'All') return true;
+    if (!productCategory) return false;
+    const p = productCategory.toLowerCase().trim();
+    const f = filterCategory.toLowerCase().trim();
+    if (p === f) return true;
+    if ((p.includes('home') || p.includes('kitchen') || p.includes('utilities')) &&
+        (f.includes('home') || f.includes('kitchen') || f.includes('utilities'))) return true;
+    if ((p.includes('beauty') || p.includes('toy')) &&
+        (f.includes('beauty') || f.includes('toy'))) return true;
+    return false;
+  };
+
+  // Total active filter counter
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedCategory && selectedCategory !== 'All') count++;
+    if (selectedBrands.length > 0) count += selectedBrands.length;
+    if (priceRange < 250000 || minPrice > 0) count++;
+    if (selectedRating > 0) count++;
+    if (selectedDiscount > 0) count++;
+    if (dealsOnly) count++;
+    if (inStockOnly) count++;
+    return count;
+  }, [selectedCategory, selectedBrands, priceRange, minPrice, selectedRating, selectedDiscount, dealsOnly, inStockOnly]);
+
+  // Robust Multitier Filtering & Sorting Engine
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
 
-    // 1. Search Query
+    // 1. Text Search Query (Title, Description, Brand, Category, SKU)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(p =>
@@ -79,45 +152,91 @@ const Home = () => {
         (p.title && p.title.toLowerCase().includes(q)) ||
         (p.brand && p.brand.toLowerCase().includes(q)) ||
         (p.category && p.category.toLowerCase().includes(q)) ||
-        (p.description && p.description.toLowerCase().includes(q))
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q))
       );
     }
 
-    // 2. Category
+    // 2. Category Filter
     if (selectedCategory && selectedCategory !== 'All') {
-      result = result.filter(p => p.category?.toLowerCase() === selectedCategory.toLowerCase());
+      result = result.filter(p => isCategoryMatching(p.category, selectedCategory));
     }
 
-    // 3. Price Range
-    if (priceRange) {
-      result = result.filter(p => p.price <= Number(priceRange));
+    // 3. Price Range (Min and Max)
+    if (minPrice > 0) {
+      result = result.filter(p => Number(p.price) >= Number(minPrice));
+    }
+    if (priceRange && priceRange < 250000) {
+      result = result.filter(p => Number(p.price) <= Number(priceRange));
     }
 
-    // 4. Brand
-    if (selectedBrand) {
-      result = result.filter(p => p.brand?.toLowerCase() === selectedBrand.toLowerCase());
+    // 4. Multiple Brand Filter
+    if (selectedBrands.length > 0) {
+      result = result.filter(p =>
+        p.brand && selectedBrands.some(b => b.toLowerCase() === p.brand.toLowerCase().trim())
+      );
     }
 
-    // 5. Price & Rating Sorting
+    // 5. Customer Rating Filter
+    if (selectedRating > 0) {
+      result = result.filter(p => (Number(p.rating) || 0) >= selectedRating);
+    }
+
+    // 6. Discount % Filter
+    if (selectedDiscount > 0) {
+      result = result.filter(p => {
+        const disc = p.discountPercentage ||
+          (p.originalPrice ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0);
+        return disc >= selectedDiscount;
+      });
+    }
+
+    // 7. Deals & Lightning Offers Only
+    if (dealsOnly) {
+      result = result.filter(p =>
+        p.isDealOfTheDay ||
+        p.isFeatured ||
+        (p.discountPercentage && p.discountPercentage >= 15)
+      );
+    }
+
+    // 8. In Stock Only
+    if (inStockOnly) {
+      result = result.filter(p => p.stock === undefined || p.stock > 0);
+    }
+
+    // 9. Comprehensive Sorting Algorithm
     if (sortBy === 'price-asc') {
-      result.sort((a, b) => a.price - b.price);
+      result.sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === 'price-desc') {
-      result.sort((a, b) => b.price - a.price);
+      result.sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === 'rating-desc') {
-      result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      result.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+    } else if (sortBy === 'discount-desc') {
+      const getDisc = (p) => p.discountPercentage || (p.originalPrice ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0);
+      result.sort((a, b) => getDisc(b) - getDisc(a));
+    } else if (sortBy === 'name-asc') {
+      result.sort((a, b) => (a.title || a.name || '').localeCompare(b.title || b.name || ''));
+    } else {
+      // 'featured' sort: Deals and Featured first, then highest rating
+      result.sort((a, b) => {
+        const scoreA = (a.isDealOfTheDay ? 2 : 0) + (a.isFeatured ? 1 : 0) + (Number(a.rating) || 0) * 0.2;
+        const scoreB = (b.isDealOfTheDay ? 2 : 0) + (b.isFeatured ? 1 : 0) + (Number(b.rating) || 0) * 0.2;
+        return scoreB - scoreA;
+      });
     }
 
     return result;
-  }, [products, searchQuery, selectedCategory, priceRange, selectedBrand, sortBy]);
+  }, [products, searchQuery, selectedCategory, priceRange, minPrice, selectedBrands, selectedRating, selectedDiscount, dealsOnly, inStockOnly, sortBy]);
 
   return (
     <div className="min-h-screen neu-bg pb-16 font-['Inter']">
       
-      {/* Top Category Pills Nav */}
+      {/* Top Category Pills Navigation */}
       <CategoryNav
         categories={categories}
         selectedCategory={selectedCategory}
-        onSelectCategory={(cat) => setSelectedCategory(cat)}
+        onSelectCategory={handleCategorySelect}
       />
 
       {/* Hero Promotional Banner Slider */}
@@ -125,66 +244,159 @@ const Home = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         
-        {/* Main Search & Control Bar (Mobile & Desktop) */}
+        {/* Main Search & Control Header Bar */}
         <div className="neu-card p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search products by title, model, or brand..."
+              placeholder="Search products by title, model, brand, or specifications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full neu-input text-slate-900 text-sm font-medium pl-10 pr-4 py-3 outline-none placeholder:text-slate-400"
+              className="w-full neu-input text-slate-900 text-sm font-medium pl-10 pr-10 py-3 outline-none placeholder:text-slate-400"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           <div className="flex items-center justify-between md:justify-end gap-3 shrink-0">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sort Catalog:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="neu-btn text-slate-800 text-xs font-extrabold px-4 py-3 outline-none cursor-pointer"
+            {/* Mobile Filter Trigger Button */}
+            <button
+              onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+              className="lg:hidden neu-btn text-slate-800 text-xs font-black px-4 py-3 flex items-center gap-2 cursor-pointer relative"
             >
-              <option value="featured">✨ Featured Deals</option>
-              <option value="price-asc">💵 Price: Low to High</option>
-              <option value="price-desc">💰 Price: High to Low</option>
-              <option value="rating-desc">⭐ Highest Customer Rating</option>
-            </select>
+              <SlidersHorizontal className="w-4 h-4 text-amber-600" />
+              <span>Refine Catalog</span>
+              {activeFiltersCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-black">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+
+            {/* Quick Sort Selector */}
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline text-xs font-black text-slate-500 uppercase tracking-wider">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="neu-btn text-slate-800 text-xs font-extrabold px-3.5 py-3 outline-none cursor-pointer"
+              >
+                <option value="featured">✨ Featured & Deals</option>
+                <option value="price-asc">💵 Price: Low to High</option>
+                <option value="price-desc">💰 Price: High to Low</option>
+                <option value="rating-desc">⭐ Highest Customer Rating</option>
+                <option value="discount-desc">🔥 Biggest Discount %</option>
+                <option value="name-asc">🔤 Title: A to Z</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Catalog Header Title */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Catalog Header Title & Results Status */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="space-y-1">
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight font-['Outfit'] flex items-center gap-2">
               <Zap className="w-6 h-6 text-amber-500 fill-amber-500" />
-              {selectedCategory === 'All' ? 'NexusCart Marketplace Catalog' : `${selectedCategory} Collection`}
+              {selectedCategory === 'All' ? 'NexusCart Verified Catalog' : `${selectedCategory} Collection`}
             </h2>
-            <p className="text-xs font-medium text-slate-500">
-              Showing {filteredAndSortedProducts.length} verified products available for instant dispatch
+            <p className="text-xs font-semibold text-slate-500">
+              Showing <span className="text-slate-900 font-extrabold">{filteredAndSortedProducts.length}</span> of {products.length} live verified items
             </p>
           </div>
+
+          {/* Quick Active Filter Badges Bar (Desktop & Mobile) */}
+          {activeFiltersCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-slate-500">Filters:</span>
+              {selectedCategory !== 'All' && (
+                <span className="neu-card-inset text-amber-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  {selectedCategory}
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => handleCategorySelect('All')} />
+                </span>
+              )}
+              {selectedBrands.map(b => (
+                <span key={b} className="neu-card-inset text-purple-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  {b}
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => handleBrandToggle(b)} />
+                </span>
+              ))}
+              {(priceRange < 250000 || minPrice > 0) && (
+                <span className="neu-card-inset text-emerald-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  ₹{Number(minPrice).toLocaleString('en-IN')} - ₹{Number(priceRange).toLocaleString('en-IN')}
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => { setMinPrice(0); setPriceRange(250000); }} />
+                </span>
+              )}
+              {selectedRating > 0 && (
+                <span className="neu-card-inset text-amber-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  {selectedRating}★+
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => setSelectedRating(0)} />
+                </span>
+              )}
+              {selectedDiscount > 0 && (
+                <span className="neu-card-inset text-orange-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  {selectedDiscount}%+ Off
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => setSelectedDiscount(0)} />
+                </span>
+              )}
+              {dealsOnly && (
+                <span className="neu-card-inset text-red-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  Deals Only
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => setDealsOnly(false)} />
+                </span>
+              )}
+              {inStockOnly && (
+                <span className="neu-card-inset text-blue-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                  In Stock
+                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => setInStockOnly(false)} />
+                </span>
+              )}
+              <button
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-red-500 hover:text-red-700 underline cursor-pointer ml-1"
+              >
+                Clear All ({activeFiltersCount})
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Main Grid Layout: Sidebar & Products */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* Filter Sidebar Container */}
-          <FilterSidebar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={(cat) => setSelectedCategory(cat)}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            priceRange={priceRange}
-            onPriceChange={setPriceRange}
-            selectedBrand={selectedBrand}
-            onBrandChange={setSelectedBrand}
-            onResetFilters={handleResetFilters}
-          />
+          {/* Filter Sidebar Container (Hidden on mobile unless toggled) */}
+          <div className={`${mobileFilterOpen ? 'block' : 'hidden'} lg:block w-full lg:w-80 shrink-0`}>
+            <FilterSidebar
+              allProducts={products}
+              selectedCategory={selectedCategory}
+              onSelectCategory={handleCategorySelect}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              priceRange={priceRange}
+              onPriceChange={setPriceRange}
+              minPrice={minPrice}
+              onMinPriceChange={setMinPrice}
+              selectedBrands={selectedBrands}
+              onBrandToggle={handleBrandToggle}
+              onClearBrands={() => setSelectedBrands([])}
+              selectedRating={selectedRating}
+              onRatingChange={setSelectedRating}
+              selectedDiscount={selectedDiscount}
+              onDiscountChange={setSelectedDiscount}
+              dealsOnly={dealsOnly}
+              onDealsOnlyChange={setDealsOnly}
+              inStockOnly={inStockOnly}
+              onInStockOnlyChange={setInStockOnly}
+              onResetFilters={handleResetFilters}
+            />
+          </div>
 
           {/* Product Grid Area */}
           <main className="flex-1 w-full">
@@ -202,14 +414,14 @@ const Home = () => {
                   <Package className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-black text-slate-900">No Matching Products Found</h3>
-                <p className="text-xs text-slate-500 font-semibold">
-                  We couldn't find any products matching your active filters or search terms.
+                <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                  We couldn't find any products matching your active filters or search terms. Try adjusting your budget, category, or rating.
                 </p>
                 <button
                   onClick={handleResetFilters}
                   className="neu-btn-primary inline-flex items-center gap-2 text-white font-black text-xs px-5 py-3 rounded-2xl transition-all shadow-md cursor-pointer"
                 >
-                  <RefreshCw className="w-4 h-4" /> Reset Catalog Filters
+                  <RefreshCw className="w-4 h-4" /> Reset All Catalog Filters
                 </button>
               </div>
             ) : (

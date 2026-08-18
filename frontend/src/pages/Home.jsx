@@ -240,7 +240,7 @@ const Home = () => {
   return (
     <div className="min-h-screen neu-bg pb-16 font-['Inter'] w-full">
       
-      {/* 1. Top Category Pills Navigation - Edge to Edge with NEW "Filters" Tab */}
+      {/* 1. Top Category Pills Navigation */}
       <CategoryNav
         categories={categories}
         selectedCategory={selectedCategory}
@@ -250,81 +250,11 @@ const Home = () => {
         isFilterOpen={filterDrawerOpen}
       />
 
-      {/* Slide-in Interactive Refine Catalog Drawer Modal (opened from top "Filters" tab) */}
-      <FilterDrawerModal
-        isOpen={filterDrawerOpen}
-        onClose={() => setFilterDrawerOpen(false)}
-        allProducts={products}
-        filteredCount={filteredAndSortedProducts.length}
-        selectedCategory={selectedCategory}
-        onSelectCategory={handleCategorySelect}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        priceRange={priceRange}
-        onPriceChange={setPriceRange}
-        minPrice={minPrice}
-        onMinPriceChange={setMinPrice}
-        selectedBrands={selectedBrands}
-        onBrandToggle={handleBrandToggle}
-        onClearBrands={() => setSelectedBrands([])}
-        selectedDiscount={selectedDiscount}
-        onDiscountChange={setSelectedDiscount}
-        dealsOnly={dealsOnly}
-        onDealsOnlyChange={setDealsOnly}
-        inStockOnly={inStockOnly}
-        onInStockOnlyChange={setInStockOnly}
-        activeFiltersCount={activeFiltersCount}
-        onResetFilters={handleResetFilters}
-      />
-
-      {/* 2. Hero Promotional Banner Carousel - Full Width */}
-      <BannerCarousel />
-
-      {/* 3. Amazon-Style 4-in-1 Category Showcases (Styled in Neumorphic Soft-UI) */}
-      <NeumorphicCategoryShowcase onSelectCategory={handleCategorySelect} />
-
-      {/* 4. Flash Deals & Flagship Scroller */}
-      {products.length > 0 && selectedCategory === 'All' && !searchQuery && (
-        <NeumorphicDealRow
-          title="⚡ Flash Deals of the Day"
-          subtitle="Special limited-time offers with instant dispatch & full warranty"
-          linkText="Explore All Deals"
-          categoryFilter="All"
-          products={products}
-          onSelectCategory={handleCategorySelect}
-        />
-      )}
-
-      {/* 5. Blockbuster Smartphones Scroller */}
-      {mobileProducts.length > 0 && selectedCategory === 'All' && !searchQuery && (
-        <NeumorphicDealRow
-          title="📱 Blockbuster Deals in Mobiles & 5G Flagships"
-          subtitle="Apple iPhone 15 Pro, Samsung Galaxy S24 Ultra & Top Brands"
-          linkText="View All Mobiles"
-          categoryFilter="Mobiles"
-          products={mobileProducts}
-          onSelectCategory={handleCategorySelect}
-        />
-      )}
-
-      {/* 6. Electronics & Audio Bestsellers Scroller */}
-      {electronicProducts.length > 0 && selectedCategory === 'All' && !searchQuery && (
-        <NeumorphicDealRow
-          title="🎧 Best Sellers in Electronics, Laptops & Audio"
-          subtitle="MacBook Air M2, Sony Noise Canceling Headphones & High-Res Audio"
-          linkText="View All Electronics"
-          categoryFilter="Electronics"
-          products={electronicProducts}
-          onSelectCategory={handleCategorySelect}
-        />
-      )}
-
-      {/* 7. Main Catalog Section - 100% Full-Screen Edge-to-Edge Product Grid */}
-      <div id="catalog-section" className="w-full px-4 sm:px-6 lg:px-10 pt-8">
-        
-        {/* Search & Sort Control Bar */}
-        <div className="neu-card p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 2. Top Dedicated Search, Filters & Sort Control Bar (Moved to Top) */}
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-2">
+        <div className="neu-card p-3.5 sm:p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 shadow-sm">
           
+          {/* Main Search Input */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
@@ -377,7 +307,80 @@ const Home = () => {
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Slide-in Interactive Refine Catalog Drawer Modal */}
+      <FilterDrawerModal
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        allProducts={products}
+        filteredCount={filteredAndSortedProducts.length}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleCategorySelect}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        priceRange={priceRange}
+        onPriceChange={setPriceRange}
+        minPrice={minPrice}
+        onMinPriceChange={setMinPrice}
+        selectedBrands={selectedBrands}
+        onBrandToggle={handleBrandToggle}
+        onClearBrands={() => setSelectedBrands([])}
+        selectedDiscount={selectedDiscount}
+        onDiscountChange={setSelectedDiscount}
+        dealsOnly={dealsOnly}
+        onDealsOnlyChange={setDealsOnly}
+        inStockOnly={inStockOnly}
+        onInStockOnlyChange={setInStockOnly}
+        activeFiltersCount={activeFiltersCount}
+        onResetFilters={handleResetFilters}
+      />
+
+      {/* 3. Hero Promotional Banner Carousel */}
+      <BannerCarousel />
+
+      {/* 4. Amazon-Style 4-in-1 Category Showcases */}
+      <NeumorphicCategoryShowcase onSelectCategory={handleCategorySelect} />
+
+      {/* 5. Flash Deals & Flagship Scroller */}
+      {products.length > 0 && selectedCategory === 'All' && !searchQuery && (
+        <NeumorphicDealRow
+          title="⚡ Flash Deals of the Day"
+          subtitle="Special limited-time offers with instant dispatch & full warranty"
+          linkText="Explore All Deals"
+          categoryFilter="All"
+          products={products}
+          onSelectCategory={handleCategorySelect}
+        />
+      )}
+
+      {/* 6. Blockbuster Smartphones Scroller */}
+      {mobileProducts.length > 0 && selectedCategory === 'All' && !searchQuery && (
+        <NeumorphicDealRow
+          title="📱 Blockbuster Deals in Mobiles & 5G Flagships"
+          subtitle="Apple iPhone 15 Pro, Samsung Galaxy S24 Ultra & Top Brands"
+          linkText="View All Mobiles"
+          categoryFilter="Mobiles"
+          products={mobileProducts}
+          onSelectCategory={handleCategorySelect}
+        />
+      )}
+
+      {/* 7. Electronics & Audio Bestsellers Scroller */}
+      {electronicProducts.length > 0 && selectedCategory === 'All' && !searchQuery && (
+        <NeumorphicDealRow
+          title="🎧 Best Sellers in Electronics, Laptops & Audio"
+          subtitle="MacBook Air M2, Sony Noise Canceling Headphones & High-Res Audio"
+          linkText="View All Electronics"
+          categoryFilter="Electronics"
+          products={electronicProducts}
+          onSelectCategory={handleCategorySelect}
+        />
+      )}
+
+      {/* 8. Main Catalog Section - 100% Full-Screen Edge-to-Edge 5-Columns Grid */}
+      <div id="catalog-section" className="w-full px-4 sm:px-6 lg:px-10 pt-6">
+        
         {/* Catalog Header Title & Results Status */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="space-y-1">
@@ -440,7 +443,7 @@ const Home = () => {
           )}
         </div>
 
-        {/* 100% Full-Width Product Grid - 5 to 6 Columns */}
+        {/* 100% Full-Width Product Grid - Exactly 5 Columns */}
         <main className="w-full">
           {loading ? (
             <div className="neu-card rounded-3xl p-16 text-center space-y-4 max-w-md mx-auto my-8">

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ShoppingBag,
-  Search,
   MapPin,
   User,
   Heart,
@@ -16,34 +15,29 @@ import {
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-const Navbar = ({ categories = [], onSearch }) => {
+const Navbar = () => {
   const { user, logout } = useAuth();
   const { cartCount, wishlist } = useCart();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [deliveryLocation, setDeliveryLocation] = useState({
     city: 'Bengaluru',
     pincode: '560001'
   });
   const [pincodeInput, setPincodeInput] = useState('');
-  const navigate = useNavigate();
 
   const isAdmin = isUserAdmin(user?.email) || user?.role === 'admin';
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (onSearch) {
-      onSearch(searchTerm, selectedCategory);
-    }
-    navigate(`/?search=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(selectedCategory)}`);
-  };
 
   const handleUpdatePincode = (e) => {
     e.preventDefault();
     if (pincodeInput.trim().length >= 6) {
       setDeliveryLocation({
-        city: pincodeInput.startsWith('560') ? 'Bengaluru' : pincodeInput.startsWith('400') ? 'Mumbai' : pincodeInput.startsWith('110') ? 'Delhi' : 'Karnataka',
+        city: pincodeInput.startsWith('560')
+          ? 'Bengaluru'
+          : pincodeInput.startsWith('400')
+          ? 'Mumbai'
+          : pincodeInput.startsWith('110')
+          ? 'Delhi'
+          : 'Karnataka',
         pincode: pincodeInput.trim()
       });
       setShowLocationModal(false);
@@ -75,7 +69,7 @@ const Navbar = ({ categories = [], onSearch }) => {
           {/* Delivery Badge (Desktop) - Inset Soft UI - Clickable */}
           <div
             onClick={() => setShowLocationModal(true)}
-            className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all shrink-0"
+            className="hidden sm:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all shrink-0"
             title="Click to change delivery pincode"
           >
             <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
@@ -84,35 +78,6 @@ const Navbar = ({ categories = [], onSearch }) => {
               <div className="font-extrabold text-slate-700">{deliveryLocation.city} {deliveryLocation.pincode}</div>
             </div>
           </div>
-
-          {/* Desktop Search Bar - Expansive Recessed Neumorphic Container */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-4xl hidden md:flex items-center neu-input p-1.5 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-500/20 transition-all duration-300">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-transparent text-slate-600 text-xs font-bold px-3 py-2 border-r border-slate-300 outline-none cursor-pointer hover:text-slate-900 transition-colors shrink-0"
-            >
-              <option value="All">All Categories</option>
-              <option value="Mobiles">Mobiles</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Home & Kitchen">Home Utilities</option>
-              <option value="Appliances">Appliances</option>
-              <option value="Beauty & Toys">Beauty & Toys</option>
-            </select>
-
-            <input
-              type="text"
-              placeholder="Search 10,000+ NexusCart verified products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent text-sm text-slate-800 font-medium px-4 py-2 outline-none placeholder:text-slate-400"
-            />
-
-            <button type="submit" className="neu-btn-primary px-5 py-2.5 text-white font-extrabold transition-all flex items-center justify-center shrink-0 cursor-pointer rounded-xl">
-              <Search className="w-4 h-4" />
-            </button>
-          </form>
 
           {/* Actions Nav Links - Neumorphic Tactile Buttons */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -168,22 +133,6 @@ const Navbar = ({ categories = [], onSearch }) => {
               </Link>
             )}
           </div>
-        </div>
-
-        {/* Mobile Dedicated Search Input */}
-        <div className="md:hidden pb-3 pt-1">
-          <form onSubmit={handleSearchSubmit} className="flex items-center neu-input p-1">
-            <input
-              type="text"
-              placeholder="Search 10,000+ products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent text-xs text-slate-800 font-semibold px-3 py-2 outline-none placeholder:text-slate-400"
-            />
-            <button type="submit" className="neu-btn-primary p-2 text-white font-bold transition-all flex items-center justify-center shrink-0 rounded-xl">
-              <Search className="w-3.5 h-3.5" />
-            </button>
-          </form>
         </div>
       </div>
 

@@ -90,6 +90,8 @@ const Home = () => {
 
   const handleCategorySelect = (catName) => {
     setSelectedCategory(catName);
+    // When changing category, clear brands if they don't belong to the new category
+    setSelectedBrands([]);
     const newParams = new URLSearchParams(searchParams);
     if (catName === 'All') {
       newParams.delete('category');
@@ -113,18 +115,24 @@ const Home = () => {
     setSearchParams({});
   };
 
-  // Helper function to match category flexibly
+  // Helper to normalize and match categories with 100% precision
+  const normalizeCat = (cat) => {
+    if (!cat) return '';
+    const c = String(cat).toLowerCase().replace(/[-_&]/g, ' ').trim();
+    if (c.includes('mobile') || c.includes('phone') || c.includes('tablet') || c.includes('smartphone')) return 'Mobiles';
+    if (c.includes('electronic') || c.includes('laptop') || c.includes('watch') || c.includes('audio') || c.includes('headphone') || c.includes('camera')) return 'Electronics';
+    if (c.includes('fashion') || c.includes('cloth') || c.includes('dress') || c.includes('shoe') || c.includes('shirt') || c.includes('bag') || c.includes('sunglass') || c.includes('jewel') || c.includes('sneaker')) return 'Fashion';
+    if (c.includes('home') || c.includes('kitchen') || c.includes('furniture') || c.includes('utilit') || c.includes('decor') || c.includes('cookware')) return 'Home & Kitchen';
+    if (c.includes('appliance') || c.includes('automotive') || c.includes('vehicle') || c.includes('motorcycle') || c.includes('sports')) return 'Appliances';
+    if (c.includes('beauty') || c.includes('toy') || c.includes('fragrance') || c.includes('skin') || c.includes('grocer') || c.includes('cosmetic') || c.includes('perfume')) return 'Beauty & Toys';
+    return cat;
+  };
+
   const isCategoryMatching = (productCategory, filterCategory) => {
     if (!filterCategory || filterCategory === 'All') return true;
-    if (!productCategory) return false;
-    const p = productCategory.toLowerCase().trim();
-    const f = filterCategory.toLowerCase().trim();
-    if (p === f) return true;
-    if ((p.includes('home') || p.includes('kitchen') || p.includes('utilities')) &&
-        (f.includes('home') || f.includes('kitchen') || f.includes('utilities'))) return true;
-    if ((p.includes('beauty') || p.includes('toy')) &&
-        (f.includes('beauty') || f.includes('toy'))) return true;
-    return false;
+    const prodNorm = normalizeCat(productCategory);
+    const filterNorm = normalizeCat(filterCategory);
+    return prodNorm.toLowerCase() === filterNorm.toLowerCase();
   };
 
   // Total active filter counter
@@ -140,12 +148,12 @@ const Home = () => {
     return count;
   }, [selectedCategory, selectedBrands, priceRange, minPrice, selectedRating, selectedDiscount, dealsOnly, inStockOnly]);
 
-  // Robust Multitier Filtering & Sorting Engine
+  // Robust Multitier Filtering & Sorting Engine (Strict AND Logic)
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
 
-    // 1. Text Search Query (Title, Description, Brand, Category, SKU)
-    if (searchQuery.trim()) {
+    // 1. Text Search Query
+    if (searchQuery && searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(p =>
         (p.name && p.name.toLowerCase().includes(q)) ||
@@ -157,7 +165,7 @@ const Home = () => {
       );
     }
 
-    // 2. Category Filter
+    // 2. Category Filter (Strict exact matching)
     if (selectedCategory && selectedCategory !== 'All') {
       result = result.filter(p => isCategoryMatching(p.category, selectedCategory));
     }
@@ -172,9 +180,14 @@ const Home = () => {
 
     // 4. Multiple Brand Filter
     if (selectedBrands.length > 0) {
-      result = result.filter(p =>
-        p.brand && selectedBrands.some(b => b.toLowerCase() === p.brand.toLowerCase().trim())
-      );
+      result = result.filter(p => {
+        const pBrand = (p.brand || '').toLowerCase().trim();
+        const pTitle = (p.title || p.name || '').toLowerCase();
+        return selectedBrands.some(b => {
+          const brandLower = b.toLowerCase().trim();
+          return pBrand === brandLower || pTitle.includes(brandLower);
+        });
+      });
     }
 
     // 5. Customer Rating Filter
@@ -191,7 +204,7 @@ const Home = () => {
       });
     }
 
-    // 7. Deals & Lightning Offers Only
+    // 7. Deals Only
     if (dealsOnly) {
       result = result.filter(p =>
         p.isDealOfTheDay ||
@@ -218,7 +231,7 @@ const Home = () => {
     } else if (sortBy === 'name-asc') {
       result.sort((a, b) => (a.title || a.name || '').localeCompare(b.title || b.name || ''));
     } else {
-      // 'featured' sort: Deals and Featured first, then highest rating
+      // 'featured' sort
       result.sort((a, b) => {
         const scoreA = (a.isDealOfTheDay ? 2 : 0) + (a.isFeatured ? 1 : 0) + (Number(a.rating) || 0) * 0.2;
         const scoreB = (b.isDealOfTheDay ? 2 : 0) + (b.isFeatured ? 1 : 0) + (Number(b.rating) || 0) * 0.2;

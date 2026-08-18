@@ -1,35 +1,142 @@
+import { initialProducts } from '../data/mockData';
+
 // Live Market Store Feed & Product Catalog Engine
 // Connects to live marketplace product APIs with full details, ratings, specifications, and images
 
-// Category mapping helper from raw API categories to NexusCart categories
-const mapCategory = (rawCat = '') => {
-  const cat = rawCat.toLowerCase();
-  if (cat.includes('smartphones') || cat.includes('mobile') || cat.includes('phone') || cat.includes('tablet')) {
+/**
+ * Robust Category Mapping for all e-commerce categories
+ */
+export const mapCategory = (rawCat = '', title = '') => {
+  const cat = String(rawCat).toLowerCase().replace(/[-_]/g, ' ').trim();
+  const text = `${title} ${cat}`.toLowerCase();
+
+  // 1. Mobiles, Smartphones, Tablets, Mobile Gear
+  if (
+    cat.includes('smartphone') ||
+    cat.includes('mobile') ||
+    cat.includes('phone') ||
+    cat.includes('tablet') ||
+    text.includes('iphone') ||
+    text.includes('galaxy s') ||
+    text.includes('smartphone')
+  ) {
     return 'Mobiles';
   }
-  if (cat.includes('laptops') || cat.includes('electronic') || cat.includes('watch') || cat.includes('camera') || cat.includes('audio')) {
+
+  // 2. Electronics (Laptops, Audio, Headphones, Cameras, Lighting, Watches)
+  if (
+    cat.includes('laptop') ||
+    cat.includes('computer') ||
+    cat.includes('electronic') ||
+    cat.includes('watch') ||
+    cat.includes('camera') ||
+    cat.includes('audio') ||
+    cat.includes('headphone') ||
+    text.includes('macbook') ||
+    text.includes('laptop') ||
+    text.includes('headphone') ||
+    text.includes('earbuds')
+  ) {
     return 'Electronics';
   }
-  if (cat.includes('clothing') || cat.includes('dress') || cat.includes('shirt') || cat.includes('shoe') || cat.includes('fashion') || cat.includes('sunglasses') || cat.includes('bag') || cat.includes('jewel')) {
+
+  // 3. Fashion (Apparel, Shoes, Dresses, Shirts, Bags, Jewellery, Sunglasses)
+  if (
+    cat.includes('clothing') ||
+    cat.includes('dress') ||
+    cat.includes('shirt') ||
+    cat.includes('top') ||
+    cat.includes('shoe') ||
+    cat.includes('sneaker') ||
+    cat.includes('fashion') ||
+    cat.includes('sunglass') ||
+    cat.includes('bag') ||
+    cat.includes('jewel') ||
+    cat.includes('apparel')
+  ) {
     return 'Fashion';
   }
-  if (cat.includes('furniture') || cat.includes('home') || cat.includes('kitchen') || cat.includes('decor') || cat.includes('lighting')) {
+
+  // 4. Home & Kitchen / Home Utilities (Furniture, Decor, Kitchenware, Cookware)
+  if (
+    cat.includes('furniture') ||
+    cat.includes('home') ||
+    cat.includes('kitchen') ||
+    cat.includes('decor') ||
+    cat.includes('lighting') ||
+    cat.includes('cookware') ||
+    cat.includes('bedding') ||
+    text.includes('vacuum') ||
+    text.includes('sofa') ||
+    text.includes('chair') ||
+    text.includes('table')
+  ) {
     return 'Home & Kitchen';
   }
-  if (cat.includes('appliance') || cat.includes('automotive') || cat.includes('motorcycle')) {
+
+  // 5. Appliances (OLED TV, Washing Machines, Automotive, Vehicles)
+  if (
+    cat.includes('appliance') ||
+    cat.includes('automotive') ||
+    cat.includes('motorcycle') ||
+    cat.includes('vehicle') ||
+    cat.includes('sports') ||
+    text.includes('refrigerator') ||
+    text.includes('oled tv') ||
+    text.includes('air conditioner') ||
+    text.includes('washing machine') ||
+    text.includes('microwave')
+  ) {
     return 'Appliances';
   }
-  if (cat.includes('fragrance') || cat.includes('skincare') || cat.includes('beauty') || cat.includes('grocer') || cat.includes('toy')) {
+
+  // 6. Beauty & Toys (Cosmetics, Skincare, Fragrances, Perfume, Makeup, Groceries, Toys)
+  if (
+    cat.includes('fragrance') ||
+    cat.includes('skin') ||
+    cat.includes('beauty') ||
+    cat.includes('grocer') ||
+    cat.includes('toy') ||
+    cat.includes('cosmetic') ||
+    cat.includes('perfume') ||
+    cat.includes('lipstick') ||
+    cat.includes('mascara')
+  ) {
     return 'Beauty & Toys';
   }
+
   return 'Electronics';
+};
+
+/**
+ * Brand normalizer ensuring every item has an accurate brand name
+ */
+export const detectBrand = (p) => {
+  if (p.brand && typeof p.brand === 'string' && p.brand.trim().length > 1) {
+    return p.brand.trim();
+  }
+  const title = (p.title || p.name || '').trim();
+  const knownBrands = [
+    'Apple', 'Samsung', 'Sony', 'Nike', 'LG', 'Dyson', 'Ray-Ban',
+    'Essence', 'Glamour Beauty', 'Velvet Touch', 'Chic Cosmetics',
+    'Nail Couture', 'Calvin Klein', 'Chanel', 'Dior', 'Gucci',
+    'Prada', 'Dell', 'HP', 'Lenovo', 'Asus', 'Rolex', 'Casio',
+    'Puma', 'Adidas', 'Zara', 'H&M'
+  ];
+  for (const b of knownBrands) {
+    if (title.toLowerCase().startsWith(b.toLowerCase()) || title.toLowerCase().includes(` ${b.toLowerCase()}`)) {
+      return b;
+    }
+  }
+  const words = title.split(' ');
+  return words[0] || 'Nexus Brand';
 };
 
 // Cached live products in memory
 let cachedMarketProducts = null;
 
 /**
- * Fetch 100+ Live Market Store Products with full descriptions, ratings, specs & multi-images
+ * Fetch 150+ Live Market Store Products combined with Flagship Products
  */
 export const fetchLiveMarketStoreProducts = async () => {
   if (cachedMarketProducts && cachedMarketProducts.length > 0) {
@@ -42,7 +149,6 @@ export const fetchLiveMarketStoreProducts = async () => {
   }
 
   try {
-    // 1. Query Live Marketplace REST API for 150 items
     const response = await fetch('https://dummyjson.com/products?limit=150');
     if (response.ok) {
       const data = await response.json();
@@ -50,6 +156,8 @@ export const fetchLiveMarketStoreProducts = async () => {
         const mappedProducts = data.products.map((p) => {
           const inrPrice = Math.round(p.price * 85);
           const origPrice = Math.round(inrPrice * (1 + (p.discountPercentage || 15) / 100));
+          const brandName = detectBrand(p);
+          const standardCat = mapCategory(p.category, p.title);
 
           return {
             id: `mkt_${p.id}`,
@@ -60,9 +168,9 @@ export const fetchLiveMarketStoreProducts = async () => {
             price: inrPrice,
             originalPrice: origPrice,
             discountPercentage: Math.round(p.discountPercentage || 15),
-            category: mapCategory(p.category),
+            category: standardCat,
             rawCategory: p.category,
-            brand: p.brand || 'Verified Live Brand',
+            brand: brandName,
             image: p.thumbnail || (p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80'),
             images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
             rating: p.rating || 4.5,
@@ -73,7 +181,8 @@ export const fetchLiveMarketStoreProducts = async () => {
             isDealOfTheDay: (p.discountPercentage || 0) > 12,
             isLiveMarket: true,
             specifications: {
-              'Brand': p.brand || 'Verified Live Brand',
+              'Brand': brandName,
+              'Category': standardCat,
               'SKU Code': p.sku || `MKT-${p.id}`,
               'Weight': p.weight ? `${p.weight} kg` : 'Standard Delivery Package',
               'Dimensions': p.dimensions ? `${p.dimensions.width} x ${p.dimensions.height} x ${p.dimensions.depth} cm` : 'Standard Package Dimensions',
@@ -85,23 +194,27 @@ export const fetchLiveMarketStoreProducts = async () => {
           };
         });
 
-        cachedMarketProducts = mappedProducts;
+        // Merge initial flagship products at the top
+        const allItems = [...initialProducts, ...mappedProducts];
+        cachedMarketProducts = allItems;
 
         return {
           success: true,
-          source: 'Live E-Commerce Marketplace REST API Feed (150 Items)',
-          count: mappedProducts.length,
-          products: mappedProducts
+          source: 'Live E-Commerce Marketplace REST API Feed',
+          count: allItems.length,
+          products: allItems
         };
       }
     }
   } catch (error) {
-    console.warn('[Live Market] Network fetch failed, falling back to embedded live dataset.');
+    console.warn('[Live Market] Network fetch fallback to initialProducts dataset.');
   }
 
+  // Fallback to initialProducts
+  cachedMarketProducts = initialProducts;
   return {
-    success: false,
-    products: []
+    success: true,
+    products: initialProducts
   };
 };
 
@@ -110,17 +223,23 @@ export const fetchLiveMarketStoreProducts = async () => {
  */
 export const fetchLiveMarketProductById = async (id) => {
   if (cachedMarketProducts) {
-    const found = cachedMarketProducts.find(p => p.id === id || p._id === id);
+    const found = cachedMarketProducts.find(p => String(p.id) === String(id) || String(p._id) === String(id));
     if (found) return { success: true, product: found };
   }
 
-  const cleanId = id.replace('mkt_', '');
+  // Check initial products
+  const mockFound = initialProducts.find(p => String(p.id) === String(id) || String(p._id) === String(id));
+  if (mockFound) return { success: true, product: mockFound };
+
+  const cleanId = String(id).replace('mkt_', '');
   try {
     const res = await fetch(`https://dummyjson.com/products/${cleanId}`);
     if (res.ok) {
       const p = await res.json();
       const inrPrice = Math.round(p.price * 85);
       const origPrice = Math.round(inrPrice * (1 + (p.discountPercentage || 15) / 100));
+      const brandName = detectBrand(p);
+      const standardCat = mapCategory(p.category, p.title);
 
       const product = {
         id: `mkt_${p.id}`,
@@ -131,8 +250,8 @@ export const fetchLiveMarketProductById = async (id) => {
         price: inrPrice,
         originalPrice: origPrice,
         discountPercentage: Math.round(p.discountPercentage || 15),
-        category: mapCategory(p.category),
-        brand: p.brand || 'Nexus Prime Verified',
+        category: standardCat,
+        brand: brandName,
         image: p.thumbnail || (p.images && p.images.length > 0 ? p.images[0] : ''),
         images: p.images || [p.thumbnail],
         rating: p.rating || 4.6,
@@ -140,7 +259,8 @@ export const fetchLiveMarketProductById = async (id) => {
         stock: p.stock || 20,
         isLiveMarket: true,
         specifications: {
-          'Brand': p.brand || 'Verified Market Item',
+          'Brand': brandName,
+          'Category': standardCat,
           'SKU Code': p.sku || `MKT-${p.id}`,
           'Weight': p.weight ? `${p.weight} kg` : 'Standard Delivery Package',
           'Dimensions': p.dimensions ? `${p.dimensions.width} x ${p.dimensions.height} x ${p.dimensions.depth} cm` : 'Standard Package Dimensions',

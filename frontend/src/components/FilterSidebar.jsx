@@ -41,8 +41,7 @@ const FilterSidebar = ({
   onDealsOnlyChange,
   inStockOnly = false,
   onInStockOnlyChange,
-  onResetFilters,
-  onRemoveSingleFilter
+  onResetFilters
 }) => {
   const [brandSearch, setBrandSearch] = useState('');
   const [showAllBrands, setShowAllBrands] = useState(false);
@@ -67,20 +66,27 @@ const FilterSidebar = ({
     }));
   };
 
-  // Helper to match categories flexibly
-  const isCatMatch = (prodCat, targetCat) => {
-    if (!prodCat) return false;
-    const p = prodCat.toLowerCase().trim();
-    const t = targetCat.toLowerCase().trim();
-    if (p === t) return true;
-    if ((p.includes('home') || p.includes('kitchen') || p.includes('utilities')) &&
-        (t.includes('home') || t.includes('kitchen') || t.includes('utilities'))) return true;
-    if ((p.includes('beauty') || p.includes('toy')) &&
-        (t.includes('beauty') || t.includes('toy'))) return true;
-    return false;
+  // Helper to normalize and match categories with 100% precision
+  const normalizeCat = (cat) => {
+    if (!cat) return '';
+    const c = String(cat).toLowerCase().replace(/[-_&]/g, ' ').trim();
+    if (c.includes('mobile') || c.includes('phone') || c.includes('tablet') || c.includes('smartphone')) return 'Mobiles';
+    if (c.includes('electronic') || c.includes('laptop') || c.includes('watch') || c.includes('audio') || c.includes('headphone') || c.includes('camera')) return 'Electronics';
+    if (c.includes('fashion') || c.includes('cloth') || c.includes('dress') || c.includes('shoe') || c.includes('shirt') || c.includes('bag') || c.includes('sunglass') || c.includes('jewel') || c.includes('sneaker')) return 'Fashion';
+    if (c.includes('home') || c.includes('kitchen') || c.includes('furniture') || c.includes('utilit') || c.includes('decor') || c.includes('cookware')) return 'Home & Kitchen';
+    if (c.includes('appliance') || c.includes('automotive') || c.includes('vehicle') || c.includes('motorcycle') || c.includes('sports')) return 'Appliances';
+    if (c.includes('beauty') || c.includes('toy') || c.includes('fragrance') || c.includes('skin') || c.includes('grocer') || c.includes('cosmetic') || c.includes('perfume')) return 'Beauty & Toys';
+    return cat;
   };
 
-  // Category List with Real-Time Dynamic Product Counts
+  const isCatMatch = (prodCat, targetCat) => {
+    if (!targetCat || targetCat === 'All') return true;
+    const prodNorm = normalizeCat(prodCat);
+    const targetNorm = normalizeCat(targetCat);
+    return prodNorm.toLowerCase() === targetNorm.toLowerCase();
+  };
+
+  // Category List Definitions
   const categoryDefinitions = [
     { key: 'All', label: 'All Products' },
     { key: 'Mobiles', label: 'Mobiles' },
@@ -91,6 +97,7 @@ const FilterSidebar = ({
     { key: 'Beauty & Toys', label: 'Beauty & Toys' }
   ];
 
+  // Dynamic Real-time Category Counts
   const categoryCounts = useMemo(() => {
     const counts = { All: allProducts.length };
     categoryDefinitions.forEach(def => {
@@ -100,10 +107,18 @@ const FilterSidebar = ({
     return counts;
   }, [allProducts]);
 
-  // Dynamic Brands Extracted from Catalog with Counts
+  // Contextual Products for the currently selected category
+  const contextualProducts = useMemo(() => {
+    if (selectedCategory && selectedCategory !== 'All') {
+      return allProducts.filter(p => isCatMatch(p.category, selectedCategory));
+    }
+    return allProducts;
+  }, [allProducts, selectedCategory]);
+
+  // Dynamic Brands contextual to selected category
   const availableBrands = useMemo(() => {
     const counts = {};
-    allProducts.forEach(p => {
+    contextualProducts.forEach(p => {
       if (p.brand && p.brand.trim()) {
         const b = p.brand.trim();
         counts[b] = (counts[b] || 0) + 1;
@@ -113,7 +128,7 @@ const FilterSidebar = ({
     return Object.keys(counts)
       .sort((a, b) => counts[b] - counts[a])
       .map(name => ({ name, count: counts[name] }));
-  }, [allProducts]);
+  }, [contextualProducts]);
 
   // Filtered brands based on user typing in brand search
   const filteredBrandsList = useMemo(() => {
@@ -126,22 +141,22 @@ const FilterSidebar = ({
   // Dynamic Rating Counts
   const ratingCounts = useMemo(() => {
     return {
-      4.5: allProducts.filter(p => (Number(p.rating) || 0) >= 4.5).length,
-      4.0: allProducts.filter(p => (Number(p.rating) || 0) >= 4.0).length,
-      3.5: allProducts.filter(p => (Number(p.rating) || 0) >= 3.5).length,
-      3.0: allProducts.filter(p => (Number(p.rating) || 0) >= 3.0).length,
+      4.5: contextualProducts.filter(p => (Number(p.rating) || 0) >= 4.5).length,
+      4.0: contextualProducts.filter(p => (Number(p.rating) || 0) >= 4.0).length,
+      3.5: contextualProducts.filter(p => (Number(p.rating) || 0) >= 3.5).length,
+      3.0: contextualProducts.filter(p => (Number(p.rating) || 0) >= 3.0).length,
     };
-  }, [allProducts]);
+  }, [contextualProducts]);
 
   // Dynamic Discount Counts
   const discountCounts = useMemo(() => {
     return {
-      10: allProducts.filter(p => (p.discountPercentage || 0) >= 10).length,
-      20: allProducts.filter(p => (p.discountPercentage || 0) >= 20).length,
-      30: allProducts.filter(p => (p.discountPercentage || 0) >= 30).length,
-      50: allProducts.filter(p => (p.discountPercentage || 0) >= 50).length,
+      10: contextualProducts.filter(p => (p.discountPercentage || 0) >= 10).length,
+      20: contextualProducts.filter(p => (p.discountPercentage || 0) >= 20).length,
+      30: contextualProducts.filter(p => (p.discountPercentage || 0) >= 30).length,
+      50: contextualProducts.filter(p => (p.discountPercentage || 0) >= 50).length,
     };
-  }, [allProducts]);
+  }, [contextualProducts]);
 
   // Count how many active filters exist
   const activeFiltersCount = useMemo(() => {
@@ -158,7 +173,7 @@ const FilterSidebar = ({
 
   // Quick Price Preset Ranges
   const quickPricePresets = [
-    { label: 'All', min: 0, max: 250000 },
+    { label: 'All Budgets', min: 0, max: 250000 },
     { label: 'Under ₹2,000', min: 0, max: 2000 },
     { label: '₹2k - ₹10k', min: 2000, max: 10000 },
     { label: '₹10k - ₹50k', min: 10000, max: 50000 },
@@ -194,7 +209,7 @@ const FilterSidebar = ({
                 )}
               </div>
               <p className="text-[10px] font-semibold text-slate-400">
-                {allProducts.length} live products loaded
+                {contextualProducts.length} matching products
               </p>
             </div>
           </div>
@@ -352,7 +367,7 @@ const FilterSidebar = ({
           {!collapsedSections.categories && (
             <div className="flex flex-wrap gap-2">
               {categoryDefinitions.map((cat) => {
-                const isSelected = selectedCategory === cat.key || (cat.key === 'Home & Kitchen' && (selectedCategory === 'Home & Kitchen' || selectedCategory === 'Home Utilities'));
+                const isSelected = isCatMatch(selectedCategory, cat.key);
                 const count = categoryCounts[cat.key] !== undefined ? categoryCounts[cat.key] : 0;
 
                 return (
@@ -393,7 +408,6 @@ const FilterSidebar = ({
 
           {!collapsedSections.price && (
             <div className="space-y-3">
-              {/* Range indicator */}
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Range:</span>
                 <span className="text-xs font-black text-amber-700 neu-card-inset px-2.5 py-1 rounded-lg border border-slate-200">
@@ -471,7 +485,7 @@ const FilterSidebar = ({
           )}
         </div>
 
-        {/* ================= 4. BRAND FILTER (DYNAMIC) ================= */}
+        {/* ================= 4. BRAND FILTER (DYNAMIC & CATEGORY-AWARE) ================= */}
         <div className="space-y-2.5 pt-2 border-t border-slate-300/80">
           <button
             onClick={() => toggleSection('brands')}

@@ -62,6 +62,15 @@ button {
   background: #94a3b8;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ==================== RICH THEME ANIMATIONS ==================== */
 
 @keyframes pulseGlow {
@@ -371,6 +380,3 @@ button {
   border: 1.5px solid rgba(245, 158, 11, 0.5);
   color: #b45309;
 }
-
-
-

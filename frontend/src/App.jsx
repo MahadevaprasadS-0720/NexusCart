@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
 // Core Stylesheet
 import './App.css';
 
-// Shared Components
+// Neumorphic Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Amazon.in Experience Components
+import AmazonHeader from './components/amazon/AmazonHeader';
+import AmazonSubNav from './components/amazon/AmazonSubNav';
+import AmazonFooter from './components/amazon/AmazonFooter';
+import AmazonDrawer from './components/amazon/AmazonDrawer';
 
 // Customer Pages
 import Home from './pages/Home';
@@ -32,16 +38,56 @@ import ManageProducts from './admin/ManageProducts';
 import ManageOrders from './admin/ManageOrders';
 import AdminUsers from './admin/AdminUsers';
 
-// Customer Layout Wrapper
+// Customer Dual-Experience Layout Wrapper
+// Guest -> Amazon.in Experience | Logged-in -> Neumorphic Soft-UI Experience
 const UserStoreLayout = () => {
+  const { user } = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [manualMode, setManualMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('nexus_view_mode') || null;
+    }
+    return null;
+  });
+
+  // Default to Amazon if unauthenticated, or Neumorphic if logged in
+  const isAmazonMode = manualMode !== null ? manualMode === 'amazon' : !user;
+
+  const toggleMode = () => {
+    const nextMode = isAmazonMode ? 'neumorphic' : 'amazon';
+    setManualMode(nextMode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nexus_view_mode', nextMode);
+    }
+  };
+
   return (
-    <div className="app-container">
-      <Navbar />
-      <CartDrawer />
-      <main className="main-content">
-        <Outlet />
-      </main>
-      <Footer />
+    <div className={`app-container ${isAmazonMode ? 'bg-[#e3e6e6]' : 'neu-bg'}`}>
+      {isAmazonMode ? (
+        <>
+          <AmazonHeader
+            onOpenDrawer={() => setDrawerOpen(true)}
+            previewMode="amazon"
+            onTogglePreviewMode={toggleMode}
+          />
+          <AmazonSubNav onOpenDrawer={() => setDrawerOpen(true)} />
+          <AmazonDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+          <CartDrawer />
+          <main className="main-content">
+            <Outlet context={{ isAmazonMode, toggleMode }} />
+          </main>
+          <AmazonFooter onTogglePreviewMode={toggleMode} />
+        </>
+      ) : (
+        <>
+          <Navbar onTogglePreviewMode={toggleMode} />
+          <CartDrawer />
+          <main className="main-content">
+            <Outlet context={{ isAmazonMode, toggleMode }} />
+          </main>
+          <Footer onTogglePreviewMode={toggleMode} />
+        </>
+      )}
     </div>
   );
 };

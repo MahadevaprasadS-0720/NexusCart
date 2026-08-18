@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useOutletContext } from 'react-router-dom';
 import BannerCarousel from '../components/BannerCarousel';
 import CategoryNav from '../components/CategoryNav';
 import FilterSidebar from '../components/FilterSidebar';
 import ProductCard from '../components/ProductCard';
+import AmazonHomeView from './AmazonHomeView';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { fetchLiveMarketStoreProducts } from '../services/liveMarketService';
 import { initialCategories } from '../data/mockData';
@@ -23,7 +25,14 @@ import {
 } from 'lucide-react';
 
 const Home = () => {
+  const { user } = useAuth();
+  const outletContext = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // If outletContext provides isAmazonMode, use it; otherwise default isAmazonMode to !user
+  const isAmazonMode = outletContext?.isAmazonMode !== undefined
+    ? outletContext.isAmazonMode
+    : !user;
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(initialCategories);
@@ -232,6 +241,21 @@ const Home = () => {
     return result;
   }, [products, searchQuery, selectedCategory, priceRange, minPrice, selectedBrands, selectedDiscount, dealsOnly, inStockOnly, sortBy]);
 
+  // ================= 1. GUEST / AMAZON.IN VIEW =================
+  if (isAmazonMode) {
+    return (
+      <AmazonHomeView
+        products={filteredAndSortedProducts}
+        loading={loading}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleCategorySelect}
+        searchQuery={searchQuery}
+        onResetFilters={handleResetFilters}
+      />
+    );
+  }
+
+  // ================= 2. AUTHENTICATED / NEUMORPHIC SOFT-UI VIP VIEW =================
   return (
     <div className="min-h-screen neu-bg pb-16 font-['Inter']">
       

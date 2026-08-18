@@ -12,12 +12,12 @@ import {
   Package,
   Sparkles,
   X,
-  Check
+  Globe
 } from 'lucide-react';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-const Navbar = ({ categories = [], onSearch }) => {
+const Navbar = ({ categories = [], onSearch, onTogglePreviewMode }) => {
   const { user, logout } = useAuth();
   const { cartCount, wishlist } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,7 +68,7 @@ const Navbar = ({ categories = [], onSearch }) => {
                 NexusCart <span className="text-amber-500 font-black">Prime</span>
               </div>
               <div className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-slate-400 hidden xs:flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Enterprise Edition
+                <Sparkles className="w-2.5 h-2.5 text-amber-500" /> VIP Soft-UI Portal
               </div>
             </div>
           </Link>
@@ -117,6 +117,19 @@ const Navbar = ({ categories = [], onSearch }) => {
 
           {/* Actions Nav Links - Neumorphic Tactile Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* View Switcher Button (To view Amazon mode) */}
+            {onTogglePreviewMode && (
+              <button
+                onClick={onTogglePreviewMode}
+                className="px-3 py-1.5 neu-btn text-slate-700 hover:text-amber-600 font-black text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
+                title="Switch to Amazon.in Storefront Theme"
+              >
+                <Globe className="w-3.5 h-3.5 text-amber-500" />
+                <span className="hidden xl:inline">Amazon View</span>
+              </button>
+            )}
+
             <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-3 py-1.5 neu-btn text-slate-600 hover:text-amber-600 transition-all text-xs font-bold">
               <Package className="w-4 h-4 mb-0.5 text-slate-500" />
               <span>Orders</span>
@@ -218,12 +231,22 @@ const Navbar = ({ categories = [], onSearch }) => {
                 onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, ''))}
                 className="neu-input w-full px-4 py-2.5 text-xs font-black text-slate-800 tracking-wider"
               />
-              <button
-                type="submit"
-                className="w-full neu-btn-primary py-2.5 rounded-xl text-xs font-black text-white flex items-center justify-center gap-2"
-              >
-                <Check className="w-4 h-4" /> Apply Pincode
-              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="neu-btn-primary flex-1 py-2.5 text-white font-black text-xs rounded-xl"
+                >
+                  Apply Pin Code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLocationModal(false)}
+                  className="neu-btn px-4 py-2.5 text-xs font-bold text-slate-600 rounded-xl"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         </div>

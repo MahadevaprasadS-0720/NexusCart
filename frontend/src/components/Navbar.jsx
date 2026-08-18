@@ -52,10 +52,10 @@ const Navbar = ({ categories = [], onSearch }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 neu-nav text-slate-800 transition-all duration-300 font-['Inter']">
-      {/* Primary Top Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
+    <header className="sticky top-0 z-50 neu-nav text-slate-800 transition-all duration-300 font-['Inter'] w-full">
+      {/* Primary Top Bar - Edge-to-Edge Full Screen */}
+      <div className="w-full px-4 sm:px-6 lg:px-10">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-3 sm:gap-6">
           
           {/* Brand Logo with Neumorphic Circle */}
           <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
@@ -63,7 +63,7 @@ const Navbar = ({ categories = [], onSearch }) => {
               <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <div className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-800 flex items-center gap-1 font-['Outfit']">
+              <div className="font-extrabold text-lg sm:text-2xl tracking-tight text-slate-800 flex items-center gap-1 font-['Outfit']">
                 NexusCart <span className="text-amber-500 font-black">Prime</span>
               </div>
               <div className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-slate-400 hidden xs:flex items-center gap-1">
@@ -75,7 +75,7 @@ const Navbar = ({ categories = [], onSearch }) => {
           {/* Delivery Badge (Desktop) - Inset Soft UI - Clickable */}
           <div
             onClick={() => setShowLocationModal(true)}
-            className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all"
+            className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 neu-card-inset text-xs cursor-pointer hover:border-amber-400 transition-all shrink-0"
             title="Click to change delivery pincode"
           >
             <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
@@ -85,12 +85,12 @@ const Navbar = ({ categories = [], onSearch }) => {
             </div>
           </div>
 
-          {/* Desktop Search Bar - Recessed Neumorphic Container */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-2xl hidden md:flex items-center neu-input p-1 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-500/20 transition-all duration-300">
+          {/* Desktop Search Bar - Expansive Recessed Neumorphic Container */}
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-4xl hidden md:flex items-center neu-input p-1.5 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-500/20 transition-all duration-300">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-transparent text-slate-600 text-xs font-bold px-3 py-2 border-r border-slate-300 outline-none cursor-pointer hover:text-slate-900 transition-colors"
+              className="bg-transparent text-slate-600 text-xs font-bold px-3 py-2 border-r border-slate-300 outline-none cursor-pointer hover:text-slate-900 transition-colors shrink-0"
             >
               <option value="All">All Categories</option>
               <option value="Mobiles">Mobiles</option>
@@ -109,14 +109,14 @@ const Navbar = ({ categories = [], onSearch }) => {
               className="w-full bg-transparent text-sm text-slate-800 font-medium px-4 py-2 outline-none placeholder:text-slate-400"
             />
 
-            <button type="submit" className="neu-btn-primary px-4 py-2.5 text-white font-extrabold transition-all flex items-center justify-center shrink-0 cursor-pointer rounded-xl">
+            <button type="submit" className="neu-btn-primary px-5 py-2.5 text-white font-extrabold transition-all flex items-center justify-center shrink-0 cursor-pointer rounded-xl">
               <Search className="w-4 h-4" />
             </button>
           </form>
 
           {/* Actions Nav Links - Neumorphic Tactile Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-3 py-1.5 neu-btn text-slate-600 hover:text-amber-600 transition-all text-xs font-bold">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-3.5 py-1.5 neu-btn text-slate-600 hover:text-amber-600 transition-all text-xs font-bold">
               <Package className="w-4 h-4 mb-0.5 text-slate-500" />
               <span>Orders</span>
             </Link>
@@ -132,19 +132,19 @@ const Navbar = ({ categories = [], onSearch }) => {
             </Link>
 
             {/* Cart Button */}
-            <Link to="/cart" className="relative px-3.5 py-2 neu-btn text-slate-700 hover:text-amber-600 transition-all flex items-center gap-2 font-extrabold text-xs" title="Shopping Cart">
+            <Link to="/cart" className="relative px-4 py-2 neu-btn text-slate-700 hover:text-amber-600 transition-all flex items-center gap-2 font-extrabold text-xs" title="Shopping Cart">
               <ShoppingCart className="w-4 h-4 text-amber-500" />
               {cartCount > 0 && (
-                <span className="bg-amber-500 text-white font-black text-[10px] px-1.5 py-0.5 rounded-full shadow-sm">
+                <span className="bg-amber-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-sm">
                   {cartCount}
                 </span>
               )}
-              <span className="hidden xl:inline">Cart</span>
+              <span className="hidden lg:inline">Cart</span>
             </Link>
 
             {/* Admin Switcher */}
             {isAdmin && (
-              <Link to="/admin" className="px-3 py-2 neu-btn text-sky-600 font-extrabold text-xs flex items-center gap-1.5 hover:text-sky-700 transition-all">
+              <Link to="/admin" className="px-3.5 py-2 neu-btn text-sky-600 font-extrabold text-xs flex items-center gap-1.5 hover:text-sky-700 transition-all">
                 <ShieldCheck className="w-4 h-4 text-sky-500" /> <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
@@ -163,7 +163,7 @@ const Navbar = ({ categories = [], onSearch }) => {
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="neu-btn-primary px-4 py-2 text-white font-extrabold text-xs transition-all flex items-center gap-1.5 shadow-sm">
+              <Link to="/login" className="neu-btn-primary px-5 py-2.5 text-white font-extrabold text-xs transition-all flex items-center gap-1.5 shadow-sm">
                 <User className="w-4 h-4" /> <span>Sign In</span>
               </Link>
             )}

@@ -127,7 +127,7 @@ const NeumorphicCategoryShowcase = ({ onSelectCategory }) => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-8 font-['Inter'] select-none">
+    <div className="w-full px-4 sm:px-6 lg:px-10 my-8 font-['Inter'] select-none">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {showcaseCards.map((card) => (
           <div

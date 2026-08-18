@@ -8,18 +8,18 @@ const Footer = () => {
   };
 
   return (
-    <footer className="neu-bg border-t border-slate-300/70 text-slate-700 mt-auto font-['Inter']">
+    <footer className="neu-bg border-t border-slate-300/70 text-slate-700 mt-auto font-['Inter'] w-full">
       {/* Back to top banner */}
       <div
         onClick={scrollToTop}
-        className="neu-card mx-4 sm:mx-8 my-6 p-3 rounded-2xl text-center cursor-pointer text-xs font-black text-slate-700 hover:text-amber-600 flex items-center justify-center gap-2 transition-all shadow-sm select-none"
+        className="neu-card mx-4 sm:mx-8 lg:mx-10 my-6 p-3.5 rounded-2xl text-center cursor-pointer text-xs font-black text-slate-700 hover:text-amber-600 flex items-center justify-center gap-2 transition-all shadow-sm select-none"
       >
         <ArrowUp className="w-4 h-4 text-amber-500" />
         <span>Back to top</span>
       </div>
 
-      {/* Value props banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-b border-slate-300/60">
+      {/* Value props banner - Full width */}
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-8 border-b border-slate-300/60">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="neu-card p-5 rounded-2xl text-center space-y-2">
             <div className="w-10 h-10 rounded-xl neu-btn-circle text-amber-500 flex items-center justify-center mx-auto">
@@ -55,8 +55,8 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Main footer links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-xs font-semibold">
+      {/* Main footer links - Full width */}
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-xs font-semibold">
         <div className="space-y-3">
           <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Get to Know Us</h4>
           <ul className="space-y-2 text-slate-500">

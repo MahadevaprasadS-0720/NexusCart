@@ -1,79 +1,79 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Zap, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  ArrowRight,
+  ShieldCheck
+} from 'lucide-react';
 
 const banners = [
   {
     id: 1,
     title: 'Apple iPhone 15 Pro Max',
     subtitle: 'Forged in Titanium. Powered by the groundbreaking A17 Pro Chip.',
-    badge: '⚡ FLASH SALE • 15% OFF',
-    tag: 'Flagship Mobile',
-    image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
-    link: '/product/prod-101',
-    bgColor: 'from-slate-950 via-slate-900 to-amber-950',
-    accentColor: 'text-amber-400',
-    btnGradient: 'from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400'
+    badge: 'FLASH SALE • 15% OFF',
+    tag: 'FLAGSHIP MOBILE',
+    image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80',
+    link: '/product-details/flagship-1',
+    bgColor: 'from-slate-950 via-slate-900 to-amber-950/40',
+    btnGradient: 'from-amber-400 to-amber-500'
   },
   {
     id: 2,
-    title: 'Samsung Galaxy S24 Ultra 5G',
-    subtitle: 'Welcome to the Era of Mobile AI & Ultra 200MP Quad Camera.',
-    badge: '🔥 DEAL OF THE DAY',
-    tag: 'Galaxy AI Enabled',
-    image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=1200&q=80',
-    link: '/product/prod-102',
-    bgColor: 'from-slate-950 via-slate-900 to-blue-950',
-    accentColor: 'text-blue-400',
-    btnGradient: 'from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400'
+    title: 'Samsung Galaxy S24 Ultra',
+    subtitle: 'Galaxy AI is here. 200MP Camera with 100x Space Zoom & Titanium frame.',
+    badge: 'NEW ARRIVAL • ₹15,000 EXCHANGE',
+    tag: 'PREMIUM AI PHONE',
+    image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=800&q=80',
+    link: '/product-details/flagship-2',
+    bgColor: 'from-slate-950 via-indigo-950/60 to-slate-900',
+    btnGradient: 'from-indigo-400 to-blue-500'
   },
   {
     id: 3,
-    title: 'Sony WH-1000XM5 Headphones',
-    subtitle: 'Industry-Leading Noise Canceling & Master Audio Performance.',
-    badge: '⭐ TOP RATED AUDIO',
-    tag: 'Lossless Hi-Res Sound',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80',
-    link: '/product/prod-103',
-    bgColor: 'from-slate-950 via-slate-900 to-emerald-950',
-    accentColor: 'text-emerald-400',
-    btnGradient: 'from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400'
+    title: 'Sony WH-1000XM5 Noise Canceling',
+    subtitle: 'Industry-leading noise cancellation with two processors and 8 microphones.',
+    badge: 'BESTSELLER • 30% OFF',
+    tag: 'STUDIO AUDIO',
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+    link: '/product-details/flagship-4',
+    bgColor: 'from-slate-950 via-neutral-900 to-emerald-950/30',
+    btnGradient: 'from-emerald-400 to-teal-500'
   },
   {
     id: 4,
-    title: 'Apple MacBook Air 15" M2',
-    subtitle: 'Impossibly thin design with Liquid Retina Display and 18h Battery.',
-    badge: '✨ BESTSELLER PRO',
-    tag: 'Next-Gen Performance',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
-    link: '/product/prod-104',
-    bgColor: 'from-slate-950 via-slate-900 to-purple-950',
-    accentColor: 'text-purple-400',
-    btnGradient: 'from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'
+    title: 'MacBook Air 15" M2 Chip',
+    subtitle: 'Impossibly thin design. Up to 18 hours of battery life. Liquid Retina display.',
+    badge: 'LIMITED TIME DEAL',
+    tag: 'POWERHOUSE ULTRABOOK',
+    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
+    link: '/product-details/flagship-3',
+    bgColor: 'from-slate-950 via-slate-900 to-sky-950/50',
+    btnGradient: 'from-sky-400 to-blue-500'
   },
   {
     id: 5,
-    title: 'Nike Air Jordan 1 Retro High',
-    subtitle: 'Iconic Chicago Colorway crafted with premium full-grain leather.',
-    badge: '👟 TRENDING STREETWEAR',
-    tag: 'Limited Edition Drop',
-    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=1200&q=80',
-    link: '/product/prod-105',
-    bgColor: 'from-slate-950 via-slate-900 to-red-950',
-    accentColor: 'text-red-400',
-    btnGradient: 'from-red-500 to-amber-500 hover:from-red-400 hover:to-amber-400'
+    title: 'Nike Air Jordan Retro High',
+    subtitle: 'Iconic hardwood heritage meets modern street style comfort and cushioning.',
+    badge: 'TRENDING FASHION • 20% OFF',
+    tag: 'SNEAKER CULTURE',
+    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=800&q=80',
+    link: '/product-details/flagship-5',
+    bgColor: 'from-slate-950 via-red-950/40 to-slate-900',
+    btnGradient: 'from-rose-500 to-red-600'
   },
   {
     id: 6,
-    title: 'LG 55" 4K OLED Smart TV',
-    subtitle: 'Self-lit OLED pixels delivering infinite contrast & 120Hz gaming.',
-    badge: '📺 HOME ENTERTAINMENT',
-    tag: 'Dolby Vision Cinema',
-    image: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=1200&q=80',
-    link: '/product/prod-107',
-    bgColor: 'from-slate-950 via-slate-900 to-indigo-950',
-    accentColor: 'text-indigo-400',
-    btnGradient: 'from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400'
+    title: 'LG 65" OLED 4K Smart Cinema TV',
+    subtitle: 'Self-lit OLED pixels, Dolby Vision IQ & Atmos for pure visual perfection.',
+    badge: 'BIG SCREEN BONANZA • 40% OFF',
+    tag: 'HOME ENTERTAINMENT',
+    image: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=800&q=80',
+    link: '/product-details/flagship-6',
+    bgColor: 'from-slate-950 via-purple-950/50 to-slate-900',
+    btnGradient: 'from-purple-500 to-pink-600'
   }
 ];
 
@@ -83,16 +83,16 @@ const BannerCarousel = () => {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  // Auto slide with pause on user hover
+  // Auto slide timer
   useEffect(() => {
     if (isPaused) return;
 
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 4500);
+      setCurrentSlide((prev) => (prev === banners.length - 1 ? 0 : prev + 1));
+    }, 6000);
 
     return () => clearInterval(timer);
-  }, [isPaused, currentSlide]);
+  }, [isPaused]);
 
   const handlePrev = (e) => {
     if (e) {
@@ -107,10 +107,10 @@ const BannerCarousel = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setCurrentSlide((prev) => (prev + 1) % banners.length);
+    setCurrentSlide((prev) => (prev === banners.length - 1 ? 0 : prev + 1));
   };
 
-  // Touch Swipe Handlers for Mobile & Tablet
+  // Touch Swipe Handlers
   const handleTouchStart = (e) => {
     touchStartX.current = e.targetTouches[0].clientX;
   };
@@ -135,7 +135,7 @@ const BannerCarousel = () => {
 
   return (
     <div
-      className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 font-['Inter'] select-none"
+      className="relative w-full px-4 sm:px-6 lg:px-10 py-4 font-['Inter'] select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -195,55 +195,54 @@ const BannerCarousel = () => {
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover rounded-2xl shadow-inner transition-transform duration-700 ease-out group-hover:scale-108"
+                  className="w-full h-full object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)]"
                 />
               </div>
             </Link>
           </div>
         </div>
 
-        {/* ================= CAROUSEL NAVIGATION BUTTONS ================= */}
-        {/* Previous Button (<) */}
-        <button
-          type="button"
-          onClick={handlePrev}
-          aria-label="Previous Slide"
-          className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-slate-900/80 hover:bg-slate-900 text-white border border-white/20 backdrop-blur-lg flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-90 cursor-pointer pointer-events-auto hover:border-amber-400 group"
-        >
-          <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
-        </button>
+        {/* Carousel Navigation Arrow Controls */}
+        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3 sm:px-6 pointer-events-none z-30">
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Previous Slide"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-black/60 hover:bg-black/90 active:scale-90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-xl pointer-events-auto cursor-pointer"
+          >
+            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Next Slide"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-black/60 hover:bg-black/90 active:scale-90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-xl pointer-events-auto cursor-pointer"
+          >
+            <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+          </button>
+        </div>
 
-        {/* Next Button (>) */}
-        <button
-          type="button"
-          onClick={handleNext}
-          aria-label="Next Slide"
-          className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-slate-900/80 hover:bg-slate-900 text-white border border-white/20 backdrop-blur-lg flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-90 cursor-pointer pointer-events-auto hover:border-amber-400 group"
-        >
-          <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        {/* ================= SLIDE INDICATOR DOTS ================= */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
-          {banners.map((b, idx) => (
+        {/* Indicator Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 pointer-events-auto">
+          {banners.map((_, index) => (
             <button
-              key={b.id}
+              key={index}
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setCurrentSlide(idx);
+                setCurrentSlide(index);
               }}
-              aria-label={`Go to slide ${idx + 1}`}
-              className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer pointer-events-auto ${
-                currentSlide === idx
-                  ? 'w-7 bg-amber-400 shadow-md shadow-amber-400/50'
-                  : 'w-2.5 bg-slate-600 hover:bg-slate-400'
+              aria-label={`Go to slide ${index + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                index === currentSlide
+                  ? 'w-8 bg-amber-400 shadow-md shadow-amber-500/50'
+                  : 'w-2 bg-white/40 hover:bg-white/70'
               }`}
             />
           ))}
         </div>
-
       </div>
     </div>
   );

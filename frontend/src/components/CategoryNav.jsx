@@ -12,7 +12,7 @@ const iconMap = {
 
 const CategoryNav = ({ categories = [], selectedCategory, onSelectCategory }) => {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-['Inter']">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-6 font-['Inter']">
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 md:gap-4">
         
         {/* All Products Chip */}

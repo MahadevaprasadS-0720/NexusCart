@@ -132,7 +132,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Inter'] space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8 font-['Inter'] space-y-6">
       {/* Header Profile Summary */}
       <div className="neu-card p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center gap-6">
         <div className="w-20 h-20 rounded-full neu-btn-circle bg-amber-500 text-white flex items-center justify-center text-2xl font-black shrink-0 shadow-sm">

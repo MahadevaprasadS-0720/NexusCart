@@ -238,16 +238,16 @@ const Home = () => {
   const fashionProducts = useMemo(() => products.filter(p => isCategoryMatching(p.category, 'Fashion')), [products]);
 
   return (
-    <div className="min-h-screen neu-bg pb-16 font-['Inter']">
+    <div className="min-h-screen neu-bg pb-16 font-['Inter'] w-full">
       
-      {/* 1. Top Category Pills Navigation */}
+      {/* 1. Top Category Pills Navigation - Edge to Edge */}
       <CategoryNav
         categories={categories}
         selectedCategory={selectedCategory}
         onSelectCategory={handleCategorySelect}
       />
 
-      {/* 2. Hero Promotional Banner Carousel */}
+      {/* 2. Hero Promotional Banner Carousel - Full Width */}
       <BannerCarousel />
 
       {/* 3. Amazon-Style 4-in-1 Category Showcases (Styled in Neumorphic Soft-UI) */}
@@ -289,8 +289,8 @@ const Home = () => {
         />
       )}
 
-      {/* 7. Main Catalog Section with Refine Sidebar & Grid */}
-      <div id="catalog-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      {/* 7. Main Catalog Section with Refine Sidebar & Grid - Full Screen Expansion */}
+      <div id="catalog-section" className="w-full px-4 sm:px-6 lg:px-10 pt-8">
         
         {/* Search & Sort Bar */}
         <div className="neu-card p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -438,7 +438,7 @@ const Home = () => {
             />
           </div>
 
-          {/* Product Grid Area */}
+          {/* Product Grid Area - Full Screen Responsive 5-Columns Grid */}
           <main className="flex-1 w-full">
             {loading ? (
               <div className="neu-card rounded-3xl p-16 text-center space-y-4 max-w-md mx-auto my-8">
@@ -465,7 +465,7 @@ const Home = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                 {filteredAndSortedProducts.map((product) => (
                   <ProductCard key={product.id || product._id} product={product} />
                 ))}

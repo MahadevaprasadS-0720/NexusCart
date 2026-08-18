@@ -130,7 +130,7 @@ const ProductDetails = () => {
   const isLiked = isInWishlist(product.id || product._id);
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1.5rem' }}>
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8 font-['Inter']">
       <button
         onClick={() => navigate(-1)}
         style={{

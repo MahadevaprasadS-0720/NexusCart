@@ -24,7 +24,7 @@ const NeumorphicDealRow = ({
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-8 font-['Inter'] select-none">
+    <section className="w-full px-4 sm:px-6 lg:px-10 my-8 font-['Inter'] select-none">
       <div className="neu-card p-6 sm:p-8 rounded-3xl space-y-4 relative">
         
         {/* Header */}
@@ -65,7 +65,7 @@ const NeumorphicDealRow = ({
             ref={scrollRef}
             className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto no-scrollbar py-2 scroll-smooth"
           >
-            {products.slice(0, 12).map((product) => {
+            {products.slice(0, 15).map((product) => {
               const discountPercent =
                 product.discountPercentage ||
                 (product.originalPrice
@@ -75,7 +75,7 @@ const NeumorphicDealRow = ({
               return (
                 <div
                   key={product.id || product._id}
-                  className="w-52 sm:w-60 shrink-0 neu-card p-4 rounded-2xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 shadow-sm"
+                  className="w-52 sm:w-64 shrink-0 neu-card p-4 rounded-2xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 shadow-sm"
                 >
                   <div>
                     {/* Image Link */}
@@ -95,7 +95,7 @@ const NeumorphicDealRow = ({
 
                     {/* Brand & Discount */}
                     <div className="flex items-center justify-between text-[10px] font-black uppercase mb-1">
-                      <span className="text-slate-400 truncate max-w-[100px]">
+                      <span className="text-slate-400 truncate max-w-[110px]">
                         {product.brand || 'Nexus Prime'}
                       </span>
                       <span className="neu-card-inset px-2 py-0.5 text-amber-600 rounded-md">

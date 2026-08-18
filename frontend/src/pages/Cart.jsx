@@ -104,7 +104,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Inter'] space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8 font-['Inter'] space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -130,10 +130,10 @@ const Cart = () => {
       </div>
 
       {/* Cart Layout: 2 Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 items-start">
         
         {/* Left Column: Cart Items List */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="xl:col-span-3 space-y-4">
           {cartItems.map((item) => {
             const pId = item.id || item._id;
             const price = item.price || 0;

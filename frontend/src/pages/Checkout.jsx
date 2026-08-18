@@ -134,7 +134,7 @@ const Checkout = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Inter'] space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8 font-['Inter'] space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-2xl neu-btn-circle text-amber-500 flex items-center justify-center shrink-0">

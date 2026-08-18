@@ -3,11 +3,9 @@ import {
   SlidersHorizontal,
   RotateCcw,
   Check,
-  Sparkles,
   Tag,
   Layers,
   DollarSign,
-  Star,
   Zap,
   Percent,
   Search,
@@ -33,8 +31,6 @@ const FilterSidebar = ({
   selectedBrands = [],
   onBrandToggle,
   onClearBrands,
-  selectedRating = 0,
-  onRatingChange,
   selectedDiscount = 0,
   onDiscountChange,
   dealsOnly = false,
@@ -54,7 +50,6 @@ const FilterSidebar = ({
     categories: false,
     price: false,
     brands: false,
-    ratings: false,
     discounts: false,
     availability: false
   });
@@ -138,16 +133,6 @@ const FilterSidebar = ({
 
   const displayedBrands = showAllBrands ? filteredBrandsList : filteredBrandsList.slice(0, 7);
 
-  // Dynamic Rating Counts
-  const ratingCounts = useMemo(() => {
-    return {
-      4.5: contextualProducts.filter(p => (Number(p.rating) || 0) >= 4.5).length,
-      4.0: contextualProducts.filter(p => (Number(p.rating) || 0) >= 4.0).length,
-      3.5: contextualProducts.filter(p => (Number(p.rating) || 0) >= 3.5).length,
-      3.0: contextualProducts.filter(p => (Number(p.rating) || 0) >= 3.0).length,
-    };
-  }, [contextualProducts]);
-
   // Dynamic Discount Counts
   const discountCounts = useMemo(() => {
     return {
@@ -164,12 +149,11 @@ const FilterSidebar = ({
     if (selectedCategory && selectedCategory !== 'All') count++;
     if (selectedBrands && selectedBrands.length > 0) count += selectedBrands.length;
     if (priceRange < 250000 || minPrice > 0) count++;
-    if (selectedRating > 0) count++;
     if (selectedDiscount > 0) count++;
     if (dealsOnly) count++;
     if (inStockOnly) count++;
     return count;
-  }, [selectedCategory, selectedBrands, priceRange, minPrice, selectedRating, selectedDiscount, dealsOnly, inStockOnly]);
+  }, [selectedCategory, selectedBrands, priceRange, minPrice, selectedDiscount, dealsOnly, inStockOnly]);
 
   // Quick Price Preset Ranges
   const quickPricePresets = [
@@ -277,16 +261,6 @@ const FilterSidebar = ({
                       setCustomMinInput('');
                       setCustomMaxInput('');
                     }}
-                  />
-                </span>
-              )}
-
-              {selectedRating > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold neu-btn text-amber-700 bg-white">
-                  <span>{selectedRating}★ & Above</span>
-                  <X
-                    className="w-3 h-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                    onClick={() => onRatingChange && onRatingChange(0)}
                   />
                 </span>
               )}
@@ -582,61 +556,7 @@ const FilterSidebar = ({
           )}
         </div>
 
-        {/* ================= 5. CUSTOMER RATINGS ================= */}
-        <div className="space-y-2.5 pt-2 border-t border-slate-300/80">
-          <button
-            onClick={() => toggleSection('ratings')}
-            className="w-full flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Customer Ratings
-            </span>
-            {collapsedSections.ratings ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
-          </button>
-
-          {!collapsedSections.ratings && (
-            <div className="space-y-1.5">
-              {[
-                { min: 4.5, label: '4.5★ & Above', desc: 'Top Rated' },
-                { min: 4.0, label: '4.0★ & Above', desc: 'Popular' },
-                { min: 3.5, label: '3.5★ & Above', desc: 'Good Value' },
-                { min: 3.0, label: '3.0★ & Above', desc: 'All Ratings' }
-              ].map((r) => {
-                const isSelected = selectedRating === r.min;
-                const count = ratingCounts[r.min] || 0;
-
-                return (
-                  <button
-                    key={r.min}
-                    onClick={() => onRatingChange(isSelected ? 0 : r.min)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isSelected
-                        ? 'neu-card-inset text-amber-800 font-black border border-amber-300 bg-amber-50/30'
-                        : 'neu-btn text-slate-700 hover:text-slate-900'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <div className="flex items-center text-amber-500">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${i < Math.floor(r.min) ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[11px] font-extrabold">{r.label}</span>
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-400">
-                      ({count})
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ================= 6. DEALS & SPECIAL OFFERS ================= */}
+        {/* ================= 5. DEALS & SPECIAL OFFERS ================= */}
         <div className="space-y-2.5 pt-2 border-t border-slate-300/80">
           <button
             onClick={() => toggleSection('discounts')}
@@ -697,7 +617,7 @@ const FilterSidebar = ({
           )}
         </div>
 
-        {/* ================= 7. AVAILABILITY & DELIVERY ================= */}
+        {/* ================= 6. AVAILABILITY & DELIVERY ================= */}
         <div className="space-y-2.5 pt-2 border-t border-slate-300/80">
           <button
             onClick={() => toggleSection('availability')}

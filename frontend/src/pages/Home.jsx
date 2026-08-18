@@ -18,7 +18,6 @@ import {
   X,
   CheckCircle2,
   Tag,
-  Star,
   Flame,
   ArrowUpDown
 } from 'lucide-react';
@@ -37,7 +36,6 @@ const Home = () => {
   const [priceRange, setPriceRange] = useState(250000);
   const [minPrice, setMinPrice] = useState(0);
   const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedRating, setSelectedRating] = useState(0);
   const [selectedDiscount, setSelectedDiscount] = useState(0);
   const [dealsOnly, setDealsOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -90,7 +88,6 @@ const Home = () => {
 
   const handleCategorySelect = (catName) => {
     setSelectedCategory(catName);
-    // When changing category, clear brands if they don't belong to the new category
     setSelectedBrands([]);
     const newParams = new URLSearchParams(searchParams);
     if (catName === 'All') {
@@ -108,7 +105,6 @@ const Home = () => {
     setPriceRange(250000);
     setMinPrice(0);
     setSelectedBrands([]);
-    setSelectedRating(0);
     setSelectedDiscount(0);
     setDealsOnly(false);
     setInStockOnly(false);
@@ -141,12 +137,11 @@ const Home = () => {
     if (selectedCategory && selectedCategory !== 'All') count++;
     if (selectedBrands.length > 0) count += selectedBrands.length;
     if (priceRange < 250000 || minPrice > 0) count++;
-    if (selectedRating > 0) count++;
     if (selectedDiscount > 0) count++;
     if (dealsOnly) count++;
     if (inStockOnly) count++;
     return count;
-  }, [selectedCategory, selectedBrands, priceRange, minPrice, selectedRating, selectedDiscount, dealsOnly, inStockOnly]);
+  }, [selectedCategory, selectedBrands, priceRange, minPrice, selectedDiscount, dealsOnly, inStockOnly]);
 
   // Robust Multitier Filtering & Sorting Engine (Strict AND Logic)
   const filteredAndSortedProducts = useMemo(() => {
@@ -190,12 +185,7 @@ const Home = () => {
       });
     }
 
-    // 5. Customer Rating Filter
-    if (selectedRating > 0) {
-      result = result.filter(p => (Number(p.rating) || 0) >= selectedRating);
-    }
-
-    // 6. Discount % Filter
+    // 5. Discount % Filter
     if (selectedDiscount > 0) {
       result = result.filter(p => {
         const disc = p.discountPercentage ||
@@ -204,7 +194,7 @@ const Home = () => {
       });
     }
 
-    // 7. Deals Only
+    // 6. Deals Only
     if (dealsOnly) {
       result = result.filter(p =>
         p.isDealOfTheDay ||
@@ -213,12 +203,12 @@ const Home = () => {
       );
     }
 
-    // 8. In Stock Only
+    // 7. In Stock Only
     if (inStockOnly) {
       result = result.filter(p => p.stock === undefined || p.stock > 0);
     }
 
-    // 9. Comprehensive Sorting Algorithm
+    // 8. Comprehensive Sorting Algorithm
     if (sortBy === 'price-asc') {
       result.sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === 'price-desc') {
@@ -240,7 +230,7 @@ const Home = () => {
     }
 
     return result;
-  }, [products, searchQuery, selectedCategory, priceRange, minPrice, selectedBrands, selectedRating, selectedDiscount, dealsOnly, inStockOnly, sortBy]);
+  }, [products, searchQuery, selectedCategory, priceRange, minPrice, selectedBrands, selectedDiscount, dealsOnly, inStockOnly, sortBy]);
 
   return (
     <div className="min-h-screen neu-bg pb-16 font-['Inter']">
@@ -347,12 +337,6 @@ const Home = () => {
                   <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => { setMinPrice(0); setPriceRange(250000); }} />
                 </span>
               )}
-              {selectedRating > 0 && (
-                <span className="neu-card-inset text-amber-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
-                  {selectedRating}★+
-                  <X className="w-3 h-3 hover:text-red-500 cursor-pointer" onClick={() => setSelectedRating(0)} />
-                </span>
-              )}
               {selectedDiscount > 0 && (
                 <span className="neu-card-inset text-orange-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
                   {selectedDiscount}%+ Off
@@ -399,8 +383,6 @@ const Home = () => {
               selectedBrands={selectedBrands}
               onBrandToggle={handleBrandToggle}
               onClearBrands={() => setSelectedBrands([])}
-              selectedRating={selectedRating}
-              onRatingChange={setSelectedRating}
               selectedDiscount={selectedDiscount}
               onDiscountChange={setSelectedDiscount}
               dealsOnly={dealsOnly}
@@ -428,7 +410,7 @@ const Home = () => {
                 </div>
                 <h3 className="text-lg font-black text-slate-900">No Matching Products Found</h3>
                 <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  We couldn't find any products matching your active filters or search terms. Try adjusting your budget, category, or rating.
+                  We couldn't find any products matching your active filters or search terms. Try adjusting your budget or category.
                 </p>
                 <button
                   onClick={handleResetFilters}

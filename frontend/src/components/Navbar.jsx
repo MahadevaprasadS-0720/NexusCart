@@ -11,13 +11,12 @@ import {
   LogOut,
   Package,
   Sparkles,
-  X,
-  Globe
+  X
 } from 'lucide-react';
 import { useAuth, isUserAdmin } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-const Navbar = ({ categories = [], onSearch, onTogglePreviewMode }) => {
+const Navbar = ({ categories = [], onSearch }) => {
   const { user, logout } = useAuth();
   const { cartCount, wishlist } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,7 +67,7 @@ const Navbar = ({ categories = [], onSearch, onTogglePreviewMode }) => {
                 NexusCart <span className="text-amber-500 font-black">Prime</span>
               </div>
               <div className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-slate-400 hidden xs:flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5 text-amber-500" /> VIP Soft-UI Portal
+                <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Enterprise Edition
               </div>
             </div>
           </Link>
@@ -104,7 +103,7 @@ const Navbar = ({ categories = [], onSearch, onTogglePreviewMode }) => {
 
             <input
               type="text"
-              placeholder="Search 10,000+ NexusCart deals..."
+              placeholder="Search 10,000+ NexusCart verified products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-transparent text-sm text-slate-800 font-medium px-4 py-2 outline-none placeholder:text-slate-400"
@@ -117,19 +116,6 @@ const Navbar = ({ categories = [], onSearch, onTogglePreviewMode }) => {
 
           {/* Actions Nav Links - Neumorphic Tactile Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            
-            {/* View Switcher Button (To view Amazon mode) */}
-            {onTogglePreviewMode && (
-              <button
-                onClick={onTogglePreviewMode}
-                className="px-3 py-1.5 neu-btn text-slate-700 hover:text-amber-600 font-black text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
-                title="Switch to Amazon.in Storefront Theme"
-              >
-                <Globe className="w-3.5 h-3.5 text-amber-500" />
-                <span className="hidden xl:inline">Amazon View</span>
-              </button>
-            )}
-
             <Link to="/orders" className="hidden sm:flex flex-col items-center justify-center px-3 py-1.5 neu-btn text-slate-600 hover:text-amber-600 transition-all text-xs font-bold">
               <Package className="w-4 h-4 mb-0.5 text-slate-500" />
               <span>Orders</span>

@@ -1,38 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams, useOutletContext } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import BannerCarousel from '../components/BannerCarousel';
 import CategoryNav from '../components/CategoryNav';
+import NeumorphicCategoryShowcase from '../components/NeumorphicCategoryShowcase';
+import NeumorphicDealRow from '../components/NeumorphicDealRow';
 import FilterSidebar from '../components/FilterSidebar';
 import ProductCard from '../components/ProductCard';
-import AmazonHomeView from './AmazonHomeView';
-import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { fetchLiveMarketStoreProducts } from '../services/liveMarketService';
 import { initialCategories } from '../data/mockData';
 import {
   Zap,
-  Sparkles,
   Search,
   SlidersHorizontal,
   Package,
   RefreshCw,
   Loader2,
   X,
-  CheckCircle2,
-  Tag,
   Flame,
-  ArrowUpDown
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 const Home = () => {
-  const { user } = useAuth();
-  const outletContext = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
-
-  // If outletContext provides isAmazonMode, use it; otherwise default isAmazonMode to !user
-  const isAmazonMode = outletContext?.isAmazonMode !== undefined
-    ? outletContext.isAmazonMode
-    : !user;
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(initialCategories);
@@ -241,37 +232,67 @@ const Home = () => {
     return result;
   }, [products, searchQuery, selectedCategory, priceRange, minPrice, selectedBrands, selectedDiscount, dealsOnly, inStockOnly, sortBy]);
 
-  // ================= 1. GUEST / AMAZON.IN VIEW =================
-  if (isAmazonMode) {
-    return (
-      <AmazonHomeView
-        products={filteredAndSortedProducts}
-        loading={loading}
-        selectedCategory={selectedCategory}
-        onSelectCategory={handleCategorySelect}
-        searchQuery={searchQuery}
-        onResetFilters={handleResetFilters}
-      />
-    );
-  }
+  // Slices for Category showcases
+  const mobileProducts = useMemo(() => products.filter(p => isCategoryMatching(p.category, 'Mobiles')), [products]);
+  const electronicProducts = useMemo(() => products.filter(p => isCategoryMatching(p.category, 'Electronics')), [products]);
+  const fashionProducts = useMemo(() => products.filter(p => isCategoryMatching(p.category, 'Fashion')), [products]);
 
-  // ================= 2. AUTHENTICATED / NEUMORPHIC SOFT-UI VIP VIEW =================
   return (
     <div className="min-h-screen neu-bg pb-16 font-['Inter']">
       
-      {/* Top Category Pills Navigation */}
+      {/* 1. Top Category Pills Navigation */}
       <CategoryNav
         categories={categories}
         selectedCategory={selectedCategory}
         onSelectCategory={handleCategorySelect}
       />
 
-      {/* Hero Promotional Banner Slider */}
+      {/* 2. Hero Promotional Banner Carousel */}
       <BannerCarousel />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      {/* 3. Amazon-Style 4-in-1 Category Showcases (Styled in Neumorphic Soft-UI) */}
+      <NeumorphicCategoryShowcase onSelectCategory={handleCategorySelect} />
+
+      {/* 4. Flash Deals & Flagship Scroller */}
+      {products.length > 0 && selectedCategory === 'All' && !searchQuery && (
+        <NeumorphicDealRow
+          title="⚡ Flash Deals of the Day"
+          subtitle="Special limited-time offers with instant dispatch & full warranty"
+          linkText="Explore All Deals"
+          categoryFilter="All"
+          products={products}
+          onSelectCategory={handleCategorySelect}
+        />
+      )}
+
+      {/* 5. Blockbuster Smartphones Scroller */}
+      {mobileProducts.length > 0 && selectedCategory === 'All' && !searchQuery && (
+        <NeumorphicDealRow
+          title="📱 Blockbuster Deals in Mobiles & 5G Flagships"
+          subtitle="Apple iPhone 15 Pro, Samsung Galaxy S24 Ultra & Top Brands"
+          linkText="View All Mobiles"
+          categoryFilter="Mobiles"
+          products={mobileProducts}
+          onSelectCategory={handleCategorySelect}
+        />
+      )}
+
+      {/* 6. Electronics & Audio Bestsellers Scroller */}
+      {electronicProducts.length > 0 && selectedCategory === 'All' && !searchQuery && (
+        <NeumorphicDealRow
+          title="🎧 Best Sellers in Electronics, Laptops & Audio"
+          subtitle="MacBook Air M2, Sony Noise Canceling Headphones & High-Res Audio"
+          linkText="View All Electronics"
+          categoryFilter="Electronics"
+          products={electronicProducts}
+          onSelectCategory={handleCategorySelect}
+        />
+      )}
+
+      {/* 7. Main Catalog Section with Refine Sidebar & Grid */}
+      <div id="catalog-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         
-        {/* Main Search & Control Header Bar */}
+        {/* Search & Sort Bar */}
         <div className="neu-card p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="relative flex-1">
@@ -339,10 +360,10 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Quick Active Filter Badges Bar (Desktop & Mobile) */}
+          {/* Quick Active Filter Badges Bar */}
           {activeFiltersCount > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-slate-500">Filters:</span>
+              <span className="text-xs font-bold text-slate-500">Active:</span>
               {selectedCategory !== 'All' && (
                 <span className="neu-card-inset text-amber-700 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
                   {selectedCategory}
@@ -392,7 +413,7 @@ const Home = () => {
         {/* Main Grid Layout: Sidebar & Products */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* Filter Sidebar Container (Hidden on mobile unless toggled) */}
+          {/* Filter Sidebar Container */}
           <div className={`${mobileFilterOpen ? 'block' : 'hidden'} lg:block w-full lg:w-80 shrink-0`}>
             <FilterSidebar
               allProducts={products}

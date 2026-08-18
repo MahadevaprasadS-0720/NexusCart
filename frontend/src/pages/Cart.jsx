@@ -11,12 +11,15 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
-  X
+  X,
+  MapPin
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAddress } from '../context/AddressContext';
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
+  const { deliveryLocation } = useAddress();
   const navigate = useNavigate();
 
   // Coupon Code State
@@ -261,6 +264,20 @@ const Cart = () => {
             <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider pb-3 border-b border-slate-200">
               Order Summary
             </h3>
+
+            {/* Delivery Destination Preview */}
+            <div className="neu-card-inset p-3 rounded-2xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">DELIVERING TO</span>
+                  <span className="font-extrabold text-slate-800">{deliveryLocation.city} ({deliveryLocation.pincode})</span>
+                </div>
+              </div>
+              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                Eligible for Free Delivery
+              </span>
+            </div>
 
             <div className="space-y-2.5 text-xs font-bold text-slate-600">
               <div className="flex justify-between">

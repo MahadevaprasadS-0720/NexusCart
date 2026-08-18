@@ -13,6 +13,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import ProtectedRoute from './components/ProtectedRoute';
+import MandatoryPermissionGate from './components/MandatoryPermissionGate';
 
 // Customer Pages
 import Home from './pages/Home';
@@ -34,17 +35,19 @@ import ManageProducts from './admin/ManageProducts';
 import ManageOrders from './admin/ManageOrders';
 import AdminUsers from './admin/AdminUsers';
 
-// Customer Layout Wrapper (Pure Neumorphic Soft-UI Experience)
+// Customer Layout Wrapper with Mandatory Permission Gate Protection
 const UserStoreLayout = () => {
   return (
-    <div className="app-container neu-bg">
-      <Navbar />
-      <CartDrawer />
-      <main className="main-content">
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
+    <MandatoryPermissionGate>
+      <div className="app-container neu-bg">
+        <Navbar />
+        <CartDrawer />
+        <main className="main-content">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </MandatoryPermissionGate>
   );
 };
 

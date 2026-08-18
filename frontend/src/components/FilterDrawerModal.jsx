@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, SlidersHorizontal, RefreshCw, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, SlidersHorizontal, RefreshCw, ArrowRight } from 'lucide-react';
 import FilterSidebar from './FilterSidebar';
 
 const FilterDrawerModal = ({
@@ -31,7 +31,6 @@ const FilterDrawerModal = ({
 
   const handleApplyAndClose = () => {
     onClose();
-    // Smooth scroll to catalog section
     const catalogEl = document.getElementById('catalog-section');
     if (catalogEl) {
       catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -47,8 +46,8 @@ const FilterDrawerModal = ({
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
       />
 
-      {/* Slide-in Drawer Container */}
-      <div className="relative w-full max-w-md sm:max-w-lg h-full bg-[#eef2f7] flex flex-col shadow-2xl z-50 border-l border-white/90 animate-in slide-in-from-right duration-300">
+      {/* Slide-in Drawer Container - Full Width Expansion */}
+      <div className="relative w-full max-w-md sm:max-w-lg md:max-w-xl h-full bg-[#eef2f7] flex flex-col shadow-2xl z-50 border-l border-white/90 animate-in slide-in-from-right duration-300">
         
         {/* Sticky Header */}
         <div className="p-5 neu-nav flex items-center justify-between border-b border-slate-300/80 shrink-0">
@@ -82,8 +81,8 @@ const FilterDrawerModal = ({
           </button>
         </div>
 
-        {/* Scrollable Filter Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+        {/* Scrollable Filter Body - 100% Full-Fit Edge-to-Edge */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6">
           <FilterSidebar
             allProducts={allProducts}
             selectedCategory={selectedCategory}
@@ -104,6 +103,7 @@ const FilterDrawerModal = ({
             inStockOnly={inStockOnly}
             onInStockOnlyChange={onInStockOnlyChange}
             onResetFilters={onResetFilters}
+            isDrawer={true}
           />
         </div>
 

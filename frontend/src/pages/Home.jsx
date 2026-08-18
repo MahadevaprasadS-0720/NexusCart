@@ -5,6 +5,7 @@ import CategoryNav from '../components/CategoryNav';
 import NeumorphicCategoryShowcase from '../components/NeumorphicCategoryShowcase';
 import NeumorphicDealRow from '../components/NeumorphicDealRow';
 import FilterSidebar from '../components/FilterSidebar';
+import FilterDrawerModal from '../components/FilterDrawerModal';
 import ProductCard from '../components/ProductCard';
 import { api } from '../services/api';
 import { fetchLiveMarketStoreProducts } from '../services/liveMarketService';
@@ -40,7 +41,8 @@ const Home = () => {
   const [dealsOnly, setDealsOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
 
-  // Mobile Filter Drawer Toggle State
+  // Filter Drawer / Modal State (opened via top "Filters" tab or mobile button)
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Sync URL search params
@@ -240,11 +242,41 @@ const Home = () => {
   return (
     <div className="min-h-screen neu-bg pb-16 font-['Inter'] w-full">
       
-      {/* 1. Top Category Pills Navigation - Edge to Edge */}
+      {/* 1. Top Category Pills Navigation - Edge to Edge with NEW "Filters" Tab */}
       <CategoryNav
         categories={categories}
         selectedCategory={selectedCategory}
         onSelectCategory={handleCategorySelect}
+        activeFiltersCount={activeFiltersCount}
+        onOpenFilter={() => setFilterDrawerOpen(true)}
+        isFilterOpen={filterDrawerOpen}
+      />
+
+      {/* Slide-in Interactive Refine Catalog Drawer Modal (opened from top "Filters" tab) */}
+      <FilterDrawerModal
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        allProducts={products}
+        filteredCount={filteredAndSortedProducts.length}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleCategorySelect}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        priceRange={priceRange}
+        onPriceChange={setPriceRange}
+        minPrice={minPrice}
+        onMinPriceChange={setMinPrice}
+        selectedBrands={selectedBrands}
+        onBrandToggle={handleBrandToggle}
+        onClearBrands={() => setSelectedBrands([])}
+        selectedDiscount={selectedDiscount}
+        onDiscountChange={setSelectedDiscount}
+        dealsOnly={dealsOnly}
+        onDealsOnlyChange={setDealsOnly}
+        inStockOnly={inStockOnly}
+        onInStockOnlyChange={setInStockOnly}
+        activeFiltersCount={activeFiltersCount}
+        onResetFilters={handleResetFilters}
       />
 
       {/* 2. Hero Promotional Banner Carousel - Full Width */}
@@ -315,13 +347,13 @@ const Home = () => {
           </div>
 
           <div className="flex items-center justify-between md:justify-end gap-3 shrink-0">
-            {/* Mobile Filter Trigger Button */}
+            {/* Quick Trigger Button for Filter Drawer */}
             <button
-              onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-              className="lg:hidden neu-btn text-slate-800 text-xs font-black px-4 py-3 flex items-center gap-2 cursor-pointer relative"
+              onClick={() => setFilterDrawerOpen(true)}
+              className="neu-btn text-slate-800 text-xs font-black px-4 py-3 flex items-center gap-2 cursor-pointer relative hover:border-amber-500 transition-all"
             >
               <SlidersHorizontal className="w-4 h-4 text-amber-600" />
-              <span>Refine Catalog</span>
+              <span>Refine Filters</span>
               {activeFiltersCount > 0 && (
                 <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-black">
                   {activeFiltersCount}
@@ -413,8 +445,8 @@ const Home = () => {
         {/* Main Grid Layout: Sidebar & Products */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* Filter Sidebar Container */}
-          <div className={`${mobileFilterOpen ? 'block' : 'hidden'} lg:block w-full lg:w-80 shrink-0`}>
+          {/* Inline Filter Sidebar Container */}
+          <div className="hidden lg:block w-full lg:w-80 shrink-0">
             <FilterSidebar
               allProducts={products}
               selectedCategory={selectedCategory}
